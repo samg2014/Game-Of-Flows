@@ -174,5 +174,27 @@ public class Field {
         }
         return loc;
     }
+    
+    public int[] optimize(int x, int y, int targetX, int targetY) {
+        double distance = Math.sqrt(Math.pow(Math.abs(x-targetX), 2)+Math.pow(Math.abs(y-targetY),2));
+        int[] coordinates = new int[2];
+        for( int i = -1; i <= 1; i++)
+        {
+            for(int j = -1; j <= 1; j++)
+            {
+                int newX = x + i;
+                int newY = y +j;
+                if(newX > -1 && newY > -1 && newX < 31 && newY < 31)
+                    if(Math.sqrt(Math.pow(Math.abs(newX-targetX), 2)+Math.pow(Math.abs(newY-targetY),2)) < distance)
+                    {
+                        distance = Math.sqrt(Math.pow(Math.abs(newX-targetX), 2)+Math.pow(Math.abs(newY-targetY),2));
+                        coordinates[0] = newX;
+                        coordinates[1] = newY;
+                    }
+            }
+            
+        }
+        return coordinates;
+    }
 
 }
