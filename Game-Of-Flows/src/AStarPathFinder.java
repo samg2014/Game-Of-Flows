@@ -66,7 +66,9 @@ public class AStarPathFinder {
             OPEN.remove(current);
             CLOSED.add(current);
 
-            int[][] neighbors = {{0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1},{2,2}};
+            int[][] neighbors = {{0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1},
+                                 {2, 2}, {2, 1}, {2, 2}, {2, -1}, {2, -2}, {1, -2}, {0, -2}, {-1, -2}, {-2, -2}, {-2, -1}, {-2, 0}, {-2, 1}, {-2, 2}, {-1, 2}, {0, 2}, {1, 2},
+                                  {0, 3}, {3, 0}, {0, -3}, {-3, 0}};
             // Search through all the neighbours of the current point evaluating
             // them as next steps
             // TODO: This needs to be properly modified to account for all possible excavator steps
