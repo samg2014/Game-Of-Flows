@@ -86,13 +86,22 @@ public class GameMap {
 
     public boolean blocked(int x1, int y1, int x2, int y2) {
         int steps = Math.max(Math.abs(y2 - y1), Math.abs(x2 - x1));
-
+        Player.out.println(x1 + ", " + y1 + " -> " + x2 + ", " + y2);
         for (int t = 1; t <= steps; t++) {
-            if (terrain[x1 + Math.round((t * (x2 - x1)) / steps)][y1 + Math.round((t * (y2 - y1)) / steps)] == BLOCKED) {
+            Player.out.println("\t" + (x1 + round((t * (x2 - x1)) / steps)) + ", " + (y1 + round((t * (y2 - y1)) / steps)));
+            if (terrain[x1 + round((t * (x2 - x1)) / (double) steps)][y1 + round((t * (y2 - y1)) / (double) steps)] == BLOCKED) {
                 return true;
             }
         }
         return false;
+    }
+    
+    public static int round( double x){
+        if (x < 0){
+            return -(int)(Math.round(-x));
+        } else{
+            return (int)(Math.round(x));
+        }
     }
 
     public float getCost(int sx, int sy, int tx, int ty) {

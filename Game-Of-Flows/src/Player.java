@@ -2,6 +2,7 @@
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 /*
@@ -19,7 +20,7 @@ public class Player {
     private static boolean fisTournament = false;
 
     // a very simple log (i.e. file) interface.  cannot be used in tournament mode.
-    public static PrintWriter sLog;
+    public static PrintWriter out;
 
     // holds information about all the excavators on the field
     //private Excavator[] fExcavators;
@@ -33,6 +34,8 @@ public class Player {
 
     public static Scanner in;
 
+    public static AStarPathFinder pathFinder;
+
     /**
      * The main player run loop.
      */
@@ -44,23 +47,24 @@ public class Player {
         turnNumber = in.nextInt();
 
         // Test moves
-        field.getExcavator(1).addCommand("move 3 3");
-        field.getExcavator(1).addCommand("move 5 5");
-        field.getExcavator(1).addCommand("move 7 7");
-        field.getExcavator(1).addCommand("move 9 9");
-        field.getExcavator(1).addCommand("dig 10 9");
-        field.getExcavator(1).addCommand("drop 9 10");
-        field.getExcavator(1).addCommand("dig 10 8");
-        field.getExcavator(1).addCommand("drop 9 10");
-        field.getExcavator(1).addCommand("move 9 6");
-        field.getExcavator(1).addCommand("dig 10 7");
-        field.getExcavator(1).addCommand("drop 8 6");
-        field.getExcavator(1).addCommand("dig 10 6");
-        field.getExcavator(1).addCommand("drop 8 6");
-        field.getExcavator(1).addCommand("dig 10 5");
-        field.getExcavator(1).addCommand("drop 8 6");
-        field.getExcavator(1).addCommand("move 7 6");
-
+//        field.getExcavator(1).addCommand("move 3 3");
+//        field.getExcavator(1).addCommand("move 5 5");
+//        field.getExcavator(1).addCommand("move 7 7");
+//        field.getExcavator(1).addCommand("move 9 9");
+//        field.getExcavator(1).addCommand("dig 10 9");
+//        field.getExcavator(1).addCommand("drop 9 10");
+//        field.getExcavator(1).addCommand("dig 10 8");
+//        field.getExcavator(1).addCommand("drop 9 10");
+//        field.getExcavator(1).addCommand("move 9 6");
+//        field.getExcavator(1).addCommand("dig 10 7");
+//        field.getExcavator(1).addCommand("drop 8 6");
+//        field.getExcavator(1).addCommand("dig 10 6");
+//        field.getExcavator(1).addCommand("drop 8 6");
+//        field.getExcavator(1).addCommand("dig 10 5");
+//        field.getExcavator(1).addCommand("drop 8 6");
+//        field.getExcavator(1).addCommand("move 7 6");
+        //field.getExcavator(0).addCommand("target 30 30");
+        boolean a = false;
         // the game engine sends a -1 for a turn number when the game is over
         while (turnNumber >= 0) {
             // Read current game score.
@@ -70,6 +74,19 @@ public class Player {
             // Decode the field input
             field.decodeField();
 
+            pathFinder = new AStarPathFinder(field.convertToMap(), 1000);
+            if (!a) {
+                int[] loc = field.findBoat();
+                Player.out.println(loc[0] + ", " + loc[1]);
+                field.getExcavator(0).addCommand("target " + (loc[0]-1) + " " + loc[1]);
+                a = false;
+            }
+            
+
+//            GameMap map = field.convertToMap();
+//            for(int[] i : map.terrain){
+//                //sLog.println(Arrays.toString(i));
+//            }
             // Should have something here to call something from the yet to be 
             // made strategy class.
             // Execute the current turn
@@ -102,7 +119,7 @@ public class Player {
             }
 
             if (!fisTournament) {
-                sLog = new PrintWriter(new FileWriter(String.format("sLog.log")));
+                out = new PrintWriter(new FileWriter(String.format("sLog.log")));
             }
 
             Player player = new Player();
@@ -111,14 +128,14 @@ public class Player {
         } catch (Throwable t) {
             System.err.format("Unhandled exception %s\n", t.getMessage());
             if (!fisTournament) {
-                t.printStackTrace(sLog);
+                t.printStackTrace(out);
             } else {
                 t.printStackTrace();
             }
         }
 
         if (!fisTournament) {
-            sLog.close();
+            out.close();
         }
 
         // explicitly exit with a success status

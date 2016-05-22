@@ -23,6 +23,7 @@ public class Excavator {
     private final int id;
     
     // A list of commands to be executed by this excavator
+    // target x y
     private ArrayList<String> commands;
     
     // This excavators color
@@ -100,12 +101,36 @@ public class Excavator {
         commands.remove(index);
     }
     
+    public void clearCommands(){
+        commands.clear();
+    }
+    
     // Executes and removes the first command on this excavator's list
     public void execute(){
         //Only red excavators can be commanded by us
         if(this.color != Color.RED) return;
         
         // Print out the next command to the engine or send the idle command
+        while(!commands.isEmpty() && commands.get(0).startsWith("target")){
+            //Player.out.println(commands.get(0));
+            String[] split = commands.get(0).split(" ");
+            int x = Integer.parseInt(split[1]);
+            int y = Integer.parseInt(split[2]);
+            if(xLoc == x && yLoc == y){
+                commands.remove(0);
+            } else{
+                Path path = Player.pathFinder.findPath(xLoc, yLoc, x, y);
+                //Player.out.println(path);
+                if(path == null){
+                    commands.add(0, "idle");
+                } else{
+                    Path.Step step = path.getStep(1);
+                    //Player.out.println("move " + step.getX() + " " + step.getY());
+                    commands.add(0, "move " + step.getX() + " " + step.getY());
+                }
+            }
+        }
+        Player.out.println(this.id + ")" + (!commands.isEmpty() ? commands.get(0) : "idle"));
         System.out.println(!commands.isEmpty() ? commands.get(0) : "idle");
         
         // If there was a command printed from the list, remove it

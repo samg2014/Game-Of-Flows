@@ -20,8 +20,12 @@ public class Tile {
     private Color sourceColor;
     private boolean isWaterHole;
     private Color boatColor;
+    public int x;
+    public int y;
     
-    public Tile(){
+    public Tile(int x, int y){
+        this.x = x;
+        this.y = y;
         this.dirtHeight = 1;
         this.hasBoat = false;
         this.hasWater = false;
@@ -63,6 +67,11 @@ public class Tile {
 
     public void setDirtHeight(int dirtHeight) {
         this.dirtHeight = dirtHeight;
+    }
+
+    @Override
+    public String toString() {
+        return "Tile{" + "dirtHeight=" + dirtHeight + ", hasBoat=" + hasBoat + ", hasWater=" + hasWater + ", waterColor=" + waterColor + ", hasExcavator=" + hasExcavator + ", excavator=" + excavator + ", isWaterSource=" + isWaterSource + ", sourceColor=" + sourceColor + ", isWaterHole=" + isWaterHole + ", boatColor=" + boatColor + '}';
     }
 
     public boolean isHasBoat() {

@@ -39,9 +39,9 @@ public class AStarPathFinder {
 
     public Path findPath(int startX, int startY, int targetX, int targetY) {
         // If the destination is blocked it can't get there so there is no path
-        if (MAP.blocked(startX, startY, targetX, targetY)) {
-            return null;
-        }
+//        if (MAP.blocked(startX, startY, targetX, targetY)) {
+//            return null;
+//        }
 
         // Initial state for A*. The closed group is empty. Only the starting
         // tile is in the open list
@@ -66,21 +66,29 @@ public class AStarPathFinder {
             OPEN.remove(current);
             CLOSED.add(current);
 
-            int[][] neighbors = {{0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1},
-                                 {2, 2}, {2, 1}, {2, 2}, {2, -1}, {2, -2}, {1, -2}, {0, -2}, {-1, -2}, {-2, -2}, {-2, -1}, {-2, 0}, {-2, 1}, {-2, 2}, {-1, 2}, {0, 2}, {1, 2},
-                                  {0, 3}, {3, 0}, {0, -3}, {-3, 0}};
+            //Player.out.println(current.x + ", " + current.y);
+
+            int[][] neighbors = {{0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}};
+                                 //{2, 2}, {2, 1}, {2, 0}, {2, -1}, {2, -2}, {1, -2}, {0, -2}, {-1, -2}, {-2, -2}, {-2, -1}, {-2, 0}, {-2, 1}, {-2, 2}, {-1, 2}, {0, 2}, {1, 2},
+                                 //{0, 3}, {3, 0}, {0, -3}, {-3, 0}};
             // Search through all the neighbours of the current point evaluating
             // them as next steps
             // TODO: This needs to be properly modified to account for all possible excavator steps
             for (int[] change : neighbors) {
                 int x = change[0];
                 int y = change[1];
+                
+//Player.out.print("\t" + x + ", " + y);
+                
                 // Don't use a tile if it is the current tile
                 if ((x == 0) && (y == 0)) continue;
                 // Determine the location of the neighbour and evaluate it
                 int xp = x + current.x;
                 int yp = y + current.y;
-                if (isValidLocation(startX, startY, xp, yp)) {
+            
+                //Player.out.println("\t" + isValidLocation(current.x, current.y, xp, yp) );
+                
+                if (isValidLocation(current.x, current.y, xp, yp)) {
                     // The cost to get to this point is cost the current plus the movement
                     // cost to reach this point. Note that the heursitic value is only used
                     // in the sorted open list
@@ -139,6 +147,7 @@ public class AStarPathFinder {
         boolean invalid = (x < 0) || (y < 0) || (x >= MAP.getWidthInTiles()) || (y >= MAP.getHeightInTiles());
         if ((!invalid)) {
             invalid = MAP.blocked(startX, startY, x, y);
+            //Player.out.println("\t\t" + MAP.blocked(startX, startY, x, y));
         }
         return !invalid;
     }
