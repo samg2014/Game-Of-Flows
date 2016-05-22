@@ -130,4 +130,19 @@ public class Field {
             
         }
     }
+    
+    public GameMap convertToMap(){
+        GameMap map = new GameMap();
+        for(int y = 0; y < tiles.length; y++){
+            for(int x = 0; x < tiles[y].length; x++){
+                Tile tile = tiles[x][y];
+                if(tile.getDirtHeight() != 1 || tile.isHasBoat() || tile.isHasExcavator() || tile.isHasWater() || tile.isIsWaterHole() || tile.isIsWaterSource()){
+                    map.terrain = GameMap.BLOCKED;
+                } else{
+                    map.terrain = GameMap.OPEN;
+                }
+            }
+        }
+        return map;
+    }
 }
