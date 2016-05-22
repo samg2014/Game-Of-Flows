@@ -39,7 +39,7 @@ public class AStarPathFinder {
 
     public Path findPath(int startX, int startY, int targetX, int targetY) {
         // If the destination is blocked it can't get there so there is no path
-        if (MAP.blocked(targetX, targetY)) {
+        if (MAP.blocked(startX, startY, targetX, targetY)) {
             return null;
         }
 
@@ -136,7 +136,7 @@ public class AStarPathFinder {
     protected boolean isValidLocation(int startX, int startY, int x, int y) {
         boolean invalid = (x < 0) || (y < 0) || (x >= MAP.getWidthInTiles()) || (y >= MAP.getHeightInTiles());
         if ((!invalid)) {
-            invalid = MAP.blocked(x, y);
+            invalid = MAP.blocked(startX, startY, x, y);
         }
         return !invalid;
     }

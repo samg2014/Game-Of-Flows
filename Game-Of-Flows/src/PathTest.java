@@ -50,12 +50,7 @@ public class PathTest extends JFrame {
 		super("Path Finding Example");
 	
 		try {
-			tiles[GameMap.GRASS] = ImageIO.read(getResource("res/grass.png"));
-			tiles[GameMap.TREES] = ImageIO.read(getResource("res/trees.png"));
-			tiles[GameMap.WATER] = ImageIO.read(getResource("res/water.png"));
-			tiles[GameMap.TANK] = ImageIO.read(getResource("res/tank.png"));
 			tiles[GameMap.PLANE] = ImageIO.read(getResource("res/plane.png"));
-			tiles[GameMap.BOAT] = ImageIO.read(getResource("res/boat.png"));
 		} catch (IOException e) {
 			System.err.println("Failed to load resources: "+e.getMessage());
 			System.exit(0);

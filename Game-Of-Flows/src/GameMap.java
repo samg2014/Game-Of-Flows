@@ -3,19 +3,13 @@ public class GameMap {
 	public static final int WIDTH = 31;
 	/** The map height in tiles */
 	public static final int HEIGHT = 31;
-	
-	/** Indicate grass terrain at a given location */
-	public static final int GRASS = 0;
-	/** Indicate water terrain at a given location */
-	public static final int WATER = 1;
-	/** Indicate trees terrain at a given location */
-	public static final int TREES = 2;
+        
 	/** Indicate a plane is at a given location */
 	public static final int PLANE = 3;
-	/** Indicate a boat is at a given location */
-	public static final int BOAT = 4;
-	/** Indicate a tank is at a given location */
-	public static final int TANK = 5;
+        
+        public static final int BLOCKED = 1;
+        public static final int OPEN = 0;
+
 	
 	/** The terrain settings for each tile in the map */
 	private int[][] terrain = new int[WIDTH][HEIGHT];
@@ -25,13 +19,11 @@ public class GameMap {
 	private boolean[][] visited = new boolean[WIDTH][HEIGHT];
 	
 	public GameMap() {
-		units[15][15] = TANK;
-		units[2][7] = BOAT;
-		units[20][25] = PLANE;
+            units[20][25] = PLANE;
 	}
 	
 	/**
-	 * Clear the array marking which tiles have been visted by the path 
+	 * Clear the array marking which tiles have been visited by the path 
 	 * finder.
 	 */
 	public void clearVisited() {
@@ -80,7 +72,7 @@ public class GameMap {
 		units[x][y] = unit;
 	}
 
-	public boolean blocked(int x, int y) {
+	public boolean blocked(int x1, int y1, int x2, int y2) {
 //		// if theres a unit at the location, then it's blocked
 //
 //		if (getUnit(x,y) != 0) {
