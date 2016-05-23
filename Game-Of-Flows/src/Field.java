@@ -63,50 +63,51 @@ public class Field {
                 String second = code.substring(1, 2);
 
                 // Interpret the second part
-                if(second.equals(".")){
-                        // a '.' means the space is holding only dirt.
-                        // Nothing needs to be done
+                if (second.equals(".")) {
+                    // a '.' means the space is holding only dirt.
+                    // Nothing needs to be done
                 }
-                    if(second.equals("N")){
-                        // this space holds a neutral (on land) boat
-                        tile.setHasBoat(true);
-                        tile.setBoatColor(Color.NEUTRAL);
-                    }
-                    if(second.equals("R")){
-                        // this space holds the red water source
-                        tile.setIsWaterSource(true);
-                        tile.setSourceColor(Color.RED);
-                    }
-                    if(second.equals("B")){
-                        // this space holds the blue water source
-                        tile.setIsWaterSource(true);
-                        tile.setSourceColor(Color.BLUE);
-                    }
-                    if(second.equals("H")){
-                        // this space holds a water hole
-                        tile.setIsWaterHole(true);
-                    }
-                    if(second.equals("F")){
-                        // this space has flowing red water
-                        tile.setHasWater(true);
-                        tile.setWaterColor(Color.RED);
-                    }
-                    if(second.equals("G")){
-                        // this space has flowing blue water
-                        tile.setHasWater(true);
-                        tile.setWaterColor(Color.BLUE);
-                    }
-                    if(second.equals("r")){
-                        // this space has a red boat (on red water)
-                        tile.setHasBoat(true);
-                        tile.setBoatColor(Color.RED);
-                    }
-                    if(second.equals("b")){
-                        // this space has a blue boat (on blue water)
-                        tile.setHasBoat(true);
-                        tile.setBoatColor(Color.BLUE);
-                    }
-                
+                if (second.equals("N")) {
+                    // this space holds a neutral (on land) boat
+                    //Player.out.println("Neutral boat at: " + tile.x + ", " + tile.y);
+                    tile.setHasBoat(true);
+                    tile.setBoatColor(Color.NEUTRAL);
+                }
+                if (second.equals("R")) {
+                    // this space holds the red water source
+                    tile.setIsWaterSource(true);
+                    tile.setSourceColor(Color.RED);
+                }
+                if (second.equals("B")) {
+                    // this space holds the blue water source
+                    tile.setIsWaterSource(true);
+                    tile.setSourceColor(Color.BLUE);
+                }
+                if (second.equals("H")) {
+                    // this space holds a water hole
+                    tile.setIsWaterHole(true);
+                }
+                if (second.equals("F")) {
+                    // this space has flowing red water
+                    tile.setHasWater(true);
+                    tile.setWaterColor(Color.RED);
+                }
+                if (second.equals("G")) {
+                    // this space has flowing blue water
+                    tile.setHasWater(true);
+                    tile.setWaterColor(Color.BLUE);
+                }
+                if (second.equals("r")) {
+                    // this space has a red boat (on red water)
+                    tile.setHasBoat(true);
+                    tile.setBoatColor(Color.RED);
+                }
+                if (second.equals("b")) {
+                    // this space has a blue boat (on blue water)
+                    tile.setHasBoat(true);
+                    tile.setBoatColor(Color.BLUE);
+                }
+
             }
         }
 
@@ -137,22 +138,16 @@ public class Field {
                 Tile tile = tiles[x][y];
                 //Player.out.println(tile);
                 if (tile.getDirtHeight() != 1) {
-                    //Player.out.println(x + ", " + y + " is Blocked - dirt");
                     map.terrain[x][y] = GameMap.BLOCKED;
                 } else if (tile.isHasBoat()) {
-                    //Player.out.println(x + ", " + y + " is Blocked - boat");
                     map.terrain[x][y] = GameMap.BLOCKED;
                 } else if (tile.isHasExcavator()) {
-                    //Player.out.println(x + ", " + y + " is Blocked - excavator");
                     map.terrain[x][y] = GameMap.BLOCKED;
                 } else if (tile.isHasWater()) {
-                    //Player.out.println(x + ", " + y + " is Blocked - water");
                     map.terrain[x][y] = GameMap.BLOCKED;
                 } else if (tile.isIsWaterHole()) {
-                    //Player.out.println(x + ", " + y + " is Blocked - water hole");
                     map.terrain[x][y] = GameMap.BLOCKED;
                 } else if (tile.isIsWaterSource()) {
-                    //Player.out.println(x + ", " + y + " is Blocked - water source");
                     map.terrain[x][y] = GameMap.BLOCKED;
                 } else {
                     map.terrain[x][y] = GameMap.OPEN;
@@ -161,12 +156,12 @@ public class Field {
         }
         return map;
     }
-    
-    public int[] findBoat(){
+
+    public int[] findBoat() {
         int[] loc = new int[2];
-        for(Tile[] row : tiles){
-            for(Tile tile : row){
-                if(tile.isHasBoat() && tile.getBoatColor() == Color.NEUTRAL){
+        for (Tile[] row : tiles) {
+            for (Tile tile : row) {
+                if (tile.isHasBoat() && tile.getBoatColor() == Color.NEUTRAL) {
                     loc[0] = tile.x;
                     loc[1] = tile.y;
                 }
@@ -174,26 +169,73 @@ public class Field {
         }
         return loc;
     }
-    
+
+    public int[] findAdjacentDirt(int x, int y) {
+        double distance = Double.MIN_VALUE;
+        int[] coordinates = new int[2];
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                int newX = x + i;
+                int newY = y + j;
+                if (newX > -1 && (newY) > -1 && newX < 31 && (newY) < 31 && !(i == 0 && j == 0) && tiles[newX][newY].getDirtHeight() > 0 && !tiles[newX][newY].isHasWater() && !tiles[newX][newY].isIsWaterSource()) {
+//                    if (Math.sqrt(Math.pow(Math.abs(newX - x), 2) + Math.pow(Math.abs(newY - y), 2)) > distance) {
+//                        distance = Math.sqrt(Math.pow(Math.abs(newX - x), 2) + Math.pow(Math.abs(newY - y), 2));
+//                        coordinates[0] = newX;
+//                        coordinates[1] = newY;
+//                    }
+
+                    coordinates = new int[]{x + i, y + j};
+                    return coordinates;
+                }
+            }
+        }
+        return coordinates;
+    }
+
+    public int[] findAdjacentDump(int x, int y) {
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                if ((x + i) > -1 && (y + j) > -1 && (x + i) < 31 && (y + j) < 31 && !(i == 0 && j == 0) && tiles[i + x][j + y].getDirtHeight() < 4 && tiles[i + x][j + y].getDirtHeight() > 0 && !tiles[i + x][j + y].isHasWater() && !tiles[i + x][j + y].isIsWaterSource()) {
+                    return new int[]{i + x, j + y};
+                }
+            }
+        }
+        return null;
+    }
+
+    public int[] findOpponentStart() {
+        if (tiles[19][20].getWaterColor() == Color.BLUE || tiles[19][20].getDirtHeight() == 0) {
+            return (new int[]{19, 20});
+        }
+        if (tiles[20][19].getWaterColor() == Color.BLUE || tiles[20][19].getDirtHeight() == 0) {
+            return (new int[]{20, 19});
+        }
+        if (tiles[21][20].getWaterColor() == Color.BLUE || tiles[21][20].getDirtHeight() == 0) {
+            return (new int[]{21, 20});
+        }
+        if (tiles[20][21].getWaterColor() == Color.BLUE || tiles[20][21].getDirtHeight() == 0) {
+            return (new int[]{20, 21});
+        }
+        return null;
+    }
+
     public int[] optimize(int x, int y, int targetX, int targetY) {
         double distance = Double.MAX_VALUE;
         int[] coordinates = new int[2];
         GameMap map = new GameMap();
-        for( int i = -1; i <= 1; i++)
-        {
-            for(int j = -1; j <= 1; j++)
-            {
-                int newX = x + i;
-                int newY = y + j;
-                if(newX > -1 && newY > -1 && newX < 31 && newY < 31 && map.terrain[newX][newY] != GameMap.BLOCKED)
-                    if(Math.sqrt(Math.pow(Math.abs(newX-targetX), 2)+Math.pow(Math.abs(newY-targetY),2)) < distance)
-                    {
-                        distance = Math.sqrt(Math.pow(Math.abs(newX-targetX), 2)+Math.pow(Math.abs(newY-targetY),2));
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                int newX = targetX + i;
+                int newY = targetY + j;
+                if (newX > -1 && newY > -1 && newX < 31 && newY < 31 && map.terrain[newX][newY] != GameMap.BLOCKED) {
+                    if (Math.sqrt(Math.pow(Math.abs(newX - x), 2) + Math.pow(Math.abs(newY - y), 2)) < distance) {
+                        distance = Math.sqrt(Math.pow(Math.abs(newX - x), 2) + Math.pow(Math.abs(newY - y), 2));
                         coordinates[0] = newX;
                         coordinates[1] = newY;
                     }
+                }
             }
-            
+
         }
         return coordinates;
     }
