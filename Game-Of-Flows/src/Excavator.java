@@ -58,7 +58,7 @@ public class Excavator {
         this.yLoc = yLoc;
     }
 
-    public boolean isIsHoldingDirt() {
+    public boolean isHoldingDirt() {
         return this.isHoldingDirt;
     }
 
@@ -66,7 +66,7 @@ public class Excavator {
         this.isHoldingDirt = isHoldingDirt;
     }
 
-    public boolean isIsHoldingBoat() {
+    public boolean isHoldingBoat() {
         return this.isHoldingBoat;
     }
 

@@ -1,4 +1,5 @@
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /*
@@ -40,6 +41,10 @@ public class Field {
 
     public Excavator getExcavator(int index) {
         return excavators[index];
+    }
+
+    public Tile getTile(int x, int y) {
+        return tiles[x][y];
     }
 
     // Turns the board provided by the engine into a machine friendly array
@@ -91,21 +96,29 @@ public class Field {
                     // this space has flowing red water
                     tile.setHasWater(true);
                     tile.setWaterColor(Color.RED);
+                    tile.setDirtHeight(0);
+                    tile.setWaterFlow(Integer.parseInt(code.substring(0, 1)));
                 }
                 if (second.equals("G")) {
                     // this space has flowing blue water
                     tile.setHasWater(true);
                     tile.setWaterColor(Color.BLUE);
+                    tile.setDirtHeight(0);
+                    tile.setWaterFlow(Integer.parseInt(code.substring(0, 1)));
                 }
                 if (second.equals("r")) {
                     // this space has a red boat (on red water)
                     tile.setHasBoat(true);
                     tile.setBoatColor(Color.RED);
+                    tile.setDirtHeight(0);
+                    tile.setWaterFlow(Integer.parseInt(code.substring(0, 1)));
                 }
                 if (second.equals("b")) {
                     // this space has a blue boat (on blue water)
                     tile.setHasBoat(true);
                     tile.setBoatColor(Color.BLUE);
+                    tile.setDirtHeight(0);
+                    tile.setWaterFlow(Integer.parseInt(code.substring(0, 1)));
                 }
 
             }
@@ -139,15 +152,15 @@ public class Field {
                 //Player.out.println(tile);
                 if (tile.getDirtHeight() != 1) {
                     map.terrain[x][y] = GameMap.BLOCKED;
-                } else if (tile.isHasBoat()) {
+                } else if (tile.hasBoat()) {
                     map.terrain[x][y] = GameMap.BLOCKED;
-                } else if (tile.isHasExcavator()) {
+                } else if (tile.hasExcavator()) {
                     map.terrain[x][y] = GameMap.BLOCKED;
-                } else if (tile.isHasWater()) {
+                } else if (tile.hasWater()) {
                     map.terrain[x][y] = GameMap.BLOCKED;
-                } else if (tile.isIsWaterHole()) {
+                } else if (tile.isWaterHole()) {
                     map.terrain[x][y] = GameMap.BLOCKED;
-                } else if (tile.isIsWaterSource()) {
+                } else if (tile.isWaterSource()) {
                     map.terrain[x][y] = GameMap.BLOCKED;
                 } else {
                     map.terrain[x][y] = GameMap.OPEN;
@@ -157,33 +170,45 @@ public class Field {
         return map;
     }
 
-    public int[] findBoat() {
-        int[] loc = new int[2];
-        for (Tile[] row : tiles) {
-            for (Tile tile : row) {
-                if (tile.isHasBoat() && tile.getBoatColor() == Color.NEUTRAL) {
-                    loc[0] = tile.x;
-                    loc[1] = tile.y;
+    public int[] findNearestBoat(int x, int y) {
+        double distance = Double.MAX_VALUE;
+        int[] loc = null;
+        for (int i = tiles.length - 1; i >= 0; i--) {
+            for (int j = tiles[i].length - 1; j >= 0; j--) {
+                Tile tile = tiles[i][j];
+                if (tile.hasBoat() && tile.getBoatColor() == Color.NEUTRAL) {
+                    if (Math.sqrt(Math.pow(Math.abs(tile.x - x), 2) + Math.pow(Math.abs(tile.y - y), 2)) < distance) {
+                        loc = new int[]{tile.x, tile.y};
+                        distance = Math.sqrt(Math.pow(Math.abs(tile.x - x), 2) + Math.pow(Math.abs(tile.y - y), 2));
+                    }
                 }
             }
         }
         return loc;
     }
+    
+    public double findNearestBoatDistance(int x, int y){
+        double distance = Double.MAX_VALUE;
+        for (int i = tiles.length - 1; i >= 0; i--) {
+            for (int j = tiles[i].length - 1; j >= 0; j--) {
+                Tile tile = tiles[i][j];
+                if (tile.hasBoat() && tile.getBoatColor() == Color.NEUTRAL) {
+                    if (Math.sqrt(Math.pow(Math.abs(tile.x - x), 2) + Math.pow(Math.abs(tile.y - y), 2)) < distance) {
+                        distance = Math.sqrt(Math.pow(Math.abs(tile.x - x), 2) + Math.pow(Math.abs(tile.y - y), 2));
+                    }
+                }
+            }
+        }
+        return distance;
+    }
 
     public int[] findAdjacentDirt(int x, int y) {
-        double distance = Double.MIN_VALUE;
         int[] coordinates = new int[2];
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
                 int newX = x + i;
                 int newY = y + j;
-                if (newX > -1 && (newY) > -1 && newX < 31 && (newY) < 31 && !(i == 0 && j == 0) && tiles[newX][newY].getDirtHeight() > 0 && !tiles[newX][newY].isHasWater() && !tiles[newX][newY].isIsWaterSource()) {
-//                    if (Math.sqrt(Math.pow(Math.abs(newX - x), 2) + Math.pow(Math.abs(newY - y), 2)) > distance) {
-//                        distance = Math.sqrt(Math.pow(Math.abs(newX - x), 2) + Math.pow(Math.abs(newY - y), 2));
-//                        coordinates[0] = newX;
-//                        coordinates[1] = newY;
-//                    }
-
+                if (newX > -1 && (newY) > -1 && newX < 31 && (newY) < 31 && !(i == 0 && j == 0) && tiles[newX][newY].getDirtHeight() > 0 && !tiles[newX][newY].hasWater() && !tiles[newX][newY].isWaterSource()) {
                     coordinates = new int[]{x + i, y + j};
                     return coordinates;
                 }
@@ -192,14 +217,17 @@ public class Field {
         return coordinates;
     }
 
-    public int[] findAdjacentDump(int x, int y) {
+    public int[] findAdjacentDump(int x, int y, int notX, int notY) {
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
-                if ((x + i) > -1 && (y + j) > -1 && (x + i) < 31 && (y + j) < 31 && !(i == 0 && j == 0) && tiles[i + x][j + y].getDirtHeight() < 4 && tiles[i + x][j + y].getDirtHeight() > 0 && !tiles[i + x][j + y].isHasWater() && !tiles[i + x][j + y].isIsWaterSource()) {
-                    return new int[]{i + x, j + y};
+                if ((x + i) > -1 && (y + j) > -1 && (x + i) < 31 && (y + j) < 31 && !(i == 0 && j == 0) && tiles[i + x][j + y].getDirtHeight() < 4 && tiles[i + x][j + y].getDirtHeight() > 0 && !tiles[i + x][j + y].hasWater() && !tiles[i + x][j + y].isWaterSource()) {
+                    if ((i + x) != notX || (j + y) != notY && !((i + x) == 10 && (j+y) == 6)) {
+                        return new int[]{i + x, j + y};
+                    }
                 }
             }
         }
+
         return null;
     }
 
@@ -219,19 +247,53 @@ public class Field {
         return null;
     }
 
+    public ArrayList<Tile> findOpponentCanal() {
+        ArrayList<Tile> ret = new ArrayList<>();
+        for (Tile[] row : tiles) {
+            for (Tile t : row) {
+                if (t.hasWater() && t.getWaterColor().equals(Color.BLUE) && !t.hasBoat()) {
+                    ret.add(t);
+                }
+            }
+        }
+        return ret;
+    }
+
+    public ArrayList<Tile> getTilesAroundBlueSource() {
+        ArrayList<Tile> ret = new ArrayList<>();
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                if (j != 0 || i != 0) {
+                    Tile t = tiles[20 + i][20 + j];
+                    if (t.getDirtHeight() > 0 && !t.hasBoat() && !t.hasExcavator() && !t.isWaterHole() && !t.hasWater() && !t.isWaterSource()) {
+                        ret.add(t);
+                    }
+                }
+            }
+        }
+        return ret;
+    }
+
     public int[] optimize(int x, int y, int targetX, int targetY) {
         double distance = Double.MAX_VALUE;
         int[] coordinates = new int[2];
-        GameMap map = new GameMap();
+        GameMap map = this.convertToMap();
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
-                int newX = targetX + i;
-                int newY = targetY + j;
-                if (newX > -1 && newY > -1 && newX < 31 && newY < 31 && map.terrain[newX][newY] != GameMap.BLOCKED) {
-                    if (Math.sqrt(Math.pow(Math.abs(newX - x), 2) + Math.pow(Math.abs(newY - y), 2)) < distance) {
-                        distance = Math.sqrt(Math.pow(Math.abs(newX - x), 2) + Math.pow(Math.abs(newY - y), 2));
+                if (i != 0 || j != 0) {
+                    int newX = targetX + i;
+                    int newY = targetY + j;
+                    if (newX == x && newY == y) {
                         coordinates[0] = newX;
                         coordinates[1] = newY;
+                        return coordinates;
+                    }
+                    if (newX > -1 && newY > -1 && newX < 31 && newY < 31 && map.terrain[newX][newY] != GameMap.BLOCKED) {
+                        if (Math.sqrt(Math.pow(Math.abs(newX - x), 2) + Math.pow(Math.abs(newY - y), 2)) < distance) {
+                            distance = Math.sqrt(Math.pow(Math.abs(newX - x), 2) + Math.pow(Math.abs(newY - y), 2));
+                            coordinates[0] = newX;
+                            coordinates[1] = newY;
+                        }
                     }
                 }
             }
@@ -240,4 +302,47 @@ public class Field {
         return coordinates;
     }
 
+    public Tile getNextCanalTarget(int x, int y) {
+        Tile ret = null;
+        if (Player.out != null) {
+            Player.out.println("NT: " + x + ", " + y);
+        }
+        int[][] check = new int[][]{{0, -1}, {1, 0}, {0, 1}, {-1, 0}};
+        for (int[] change : check) {
+            Tile t;
+            try {
+                t = getTile(x + change[0], y + change[1]);
+            } catch (IndexOutOfBoundsException e) {
+                continue;
+            }
+            if(t.getDirtHeight() < 1){
+                continue;
+            }
+//            if(t.hasWater() || t.getDirtHeight() < 1){
+//                return t;
+//            }
+            if (Player.out != null) {
+                Player.out.println(t);
+            }
+            int count = 0;
+            for (int[] p : check) {
+                Tile i;
+                try {
+                    i = getTile(x + p[0], y + p[1]);
+                } catch (IndexOutOfBoundsException e) {
+                    continue;
+                }
+                if (i.hasWater() || i.getDirtHeight() < 1) {
+                    count++;
+                }
+            }
+            if (count < 2 && ret == null) {
+                return t;
+            }
+        }
+        if (Player.out != null) {
+            Player.out.println("Next tile: " + ret);
+        }
+        return ret;
+    }
 }

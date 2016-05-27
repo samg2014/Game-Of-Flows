@@ -22,6 +22,7 @@ public class Tile {
     private Color boatColor;
     public int x;
     public int y;
+    private int waterFlow;
     
     public Tile(int x, int y){
         this.x = x;
@@ -36,6 +37,7 @@ public class Tile {
         this.waterColor = Color.NULL;
         this.sourceColor = Color.NULL;
         this.boatColor = Color.NULL;
+        this.waterFlow = 0;
     }
     
     // Resets all values to their default values
@@ -51,6 +53,15 @@ public class Tile {
         this.waterColor = Color.NULL;
         this.sourceColor = Color.NULL;
         this.boatColor = Color.NULL;
+        this.waterFlow = 0;
+    }
+
+    public int getWaterFlow() {
+        return waterFlow;
+    }
+
+    public void setWaterFlow(int waterFlow) {
+        this.waterFlow = waterFlow;
     }
 
     public Excavator getExcavator() {
@@ -71,10 +82,10 @@ public class Tile {
 
     @Override
     public String toString() {
-        return "Tile{" + "dirtHeight=" + dirtHeight + ", hasBoat=" + hasBoat + ", hasWater=" + hasWater + ", waterColor=" + waterColor + ", hasExcavator=" + hasExcavator + ", excavator=" + excavator + ", isWaterSource=" + isWaterSource + ", sourceColor=" + sourceColor + ", isWaterHole=" + isWaterHole + ", boatColor=" + boatColor + '}';
+        return "Tile{" + "x=" + x + ", y=" + y + ", dirtHeight=" + dirtHeight +"}";//", dirtHeight=" + dirtHeight + ", hasBoat=" + hasBoat + ", hasWater=" + hasWater + ", waterColor=" + waterColor + ", hasExcavator=" + hasExcavator + ", excavator=" + excavator + ", isWaterSource=" + isWaterSource + ", sourceColor=" + sourceColor + ", isWaterHole=" + isWaterHole + ", boatColor=" + boatColor + '}';
     }
 
-    public boolean isHasBoat() {
+    public boolean hasBoat() {
         return hasBoat;
     }
 
@@ -82,7 +93,7 @@ public class Tile {
         this.hasBoat = hasBoat;
     }
 
-    public boolean isHasWater() {
+    public boolean hasWater() {
         return hasWater;
     }
 
@@ -98,7 +109,7 @@ public class Tile {
         this.waterColor = waterColor;
     }
 
-    public boolean isHasExcavator() {
+    public boolean hasExcavator() {
         return hasExcavator;
     }
 
@@ -106,7 +117,7 @@ public class Tile {
         this.hasExcavator = hasExcavator;
     }
 
-    public boolean isIsWaterSource() {
+    public boolean isWaterSource() {
         return isWaterSource;
     }
 
@@ -122,7 +133,7 @@ public class Tile {
         this.sourceColor = sourceColor;
     }
 
-    public boolean isIsWaterHole() {
+    public boolean isWaterHole() {
         return isWaterHole;
     }
 
