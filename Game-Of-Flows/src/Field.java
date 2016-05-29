@@ -202,7 +202,7 @@ public class Field {
         return distance;
     }
 
-    int[][] dontDig = new int[][]{{9, 9}, {9, 8}, {9, 7}, {9, 7}, {11, 9}, {11, 8}, {11, 7}, {11, 7}};
+    int[][] dontDig = new int[][]{{9, 9}, {9, 8}, {9, 7}, {9, 6}, {11, 9}, {11, 8}, {11, 7}, {11, 6}, {9, 10}, {9,11}, {10,11}, {11,11}, {11,10}};
 
     public int[] findAdjacentDirt(int x, int y) {
         int[] coordinates = new int[2];

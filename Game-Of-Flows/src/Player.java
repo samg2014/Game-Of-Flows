@@ -56,7 +56,7 @@ public class Player {
      *
      * 0) First, engage in canal protection (minimal, places to things of dirt)
      *
-     * 1) If #0 is complete, grab a neutral boat if it is within 10 spaces
+     * 1) If #0 is complete, grab a neutral boat if it is within 20 spaces
      *
      * 2) Else, engage in attack activities
      */
@@ -213,6 +213,9 @@ public class Player {
                     e.addCommand("target " + (op[0]) + " " + op[1]);
                     //Find dirt near the target
                     int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+                    if (e.isHoldingDirt()) {
+                        e.addCommand("drop " + target[0] + " " + target[1]);
+                    }
                     //Get the dirt and dump it on the target
                     e.addCommand("dig " + dirt[0] + " " + dirt[1]);
                     e.addCommand("drop " + (target[0]) + " " + target[1]);
@@ -240,12 +243,11 @@ public class Player {
     public static void command1() {
         //Get the excavator
         Excavator e = field.getExcavator(1);
-        
+
                 //If this excavator has stalled, kill its commands and restart
 //        if (e.getxLoc() == last1LocX && e.getyLoc() == last1LocY) {
 //            e.clearCommands();
 //        }
-        
         //If the water source has a boat and phase = 1
         if (field.getTile(10, 10).hasBoat() && onePhase == 1) {
             //If this excavator has commands
@@ -357,7 +359,7 @@ public class Player {
                     } else {
                         //Find a new canal tile
                         Tile t = field.getNextCanalTarget(lastTile[0], lastTile[1]);
-                        
+
                         if (t != null) {
                             System.err.println(turnNumber + ":" + "1" + t.x + ":" + t.y);
                             canalLength++;
@@ -394,15 +396,14 @@ public class Player {
         //Get excavator #2
         Excavator e = field.getExcavator(2);
 
-        if (turnNumber > 170 && field.getTile(skipTile[0], skipTile[1]).getDirtHeight() > 0) {
-            int[] target = new int[]{skipTile[0], skipTile[1]};
-            int[] op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
-            e.addCommand("target " + (op[0]) + " " + op[1]);
-            int[] dump = field.findAdjacentDump(op[0], op[1], target[0], target[1]);
-            e.addCommand("dig " + target[0] + " " + target[1]);
-            e.addCommand("drop " + (dump[0]) + " " + dump[1]);
-        }
-
+//        if (turnNumber > 170 && field.getTile(skipTile[0], skipTile[1]).getDirtHeight() > 0) {
+//            int[] target = new int[]{skipTile[0], skipTile[1]};
+//            int[] op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+//            e.addCommand("target " + (op[0]) + " " + op[1]);
+//            int[] dump = field.findAdjacentDump(op[0], op[1], target[0], target[1]);
+//            e.addCommand("dig " + target[0] + " " + target[1]);
+//            e.addCommand("drop " + (dump[0]) + " " + dump[1]);
+//        }
         //If it has no commands
         if (e.getCommands().isEmpty()) {
 
