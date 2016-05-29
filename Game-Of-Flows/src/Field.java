@@ -186,8 +186,8 @@ public class Field {
         }
         return loc;
     }
-    
-    public double findNearestBoatDistance(int x, int y){
+
+    public double findNearestBoatDistance(int x, int y) {
         double distance = Double.MAX_VALUE;
         for (int i = tiles.length - 1; i >= 0; i--) {
             for (int j = tiles[i].length - 1; j >= 0; j--) {
@@ -202,14 +202,22 @@ public class Field {
         return distance;
     }
 
+    int[][] dontDig = new int[][]{{9, 9}, {9, 8}, {9, 7}, {9, 7}, {11, 9}, {11, 8}, {11, 7}, {11, 7}};
+
     public int[] findAdjacentDirt(int x, int y) {
         int[] coordinates = new int[2];
         for (int i = -1; i <= 1; i++) {
+            two:
             for (int j = -1; j <= 1; j++) {
                 int newX = x + i;
                 int newY = y + j;
                 if (newX > -1 && (newY) > -1 && newX < 31 && (newY) < 31 && !(i == 0 && j == 0) && tiles[newX][newY].getDirtHeight() > 0 && !tiles[newX][newY].hasWater() && !tiles[newX][newY].isWaterSource()) {
-                    coordinates = new int[]{x + i, y + j};
+                    for (int[] c : dontDig) {
+                        if (c[0] == newX && c[1] == newY) {
+                            continue two;
+                        }
+                    }
+                    coordinates = new int[]{newX, newY};
                     return coordinates;
                 }
             }
@@ -220,9 +228,11 @@ public class Field {
     public int[] findAdjacentDump(int x, int y, int notX, int notY) {
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
-                if ((x + i) > -1 && (y + j) > -1 && (x + i) < 31 && (y + j) < 31 && !(i == 0 && j == 0) && tiles[i + x][j + y].getDirtHeight() < 4 && tiles[i + x][j + y].getDirtHeight() > 0 && !tiles[i + x][j + y].hasWater() && !tiles[i + x][j + y].isWaterSource()) {
-                    if ((i + x) != notX || (j + y) != notY && !((i + x) == 10 && (j+y) == 6)) {
-                        return new int[]{i + x, j + y};
+                int newX = x + i;
+                int newY = y + j;
+                if (newX > -1 && newY > -1 && newX < 31 && newY < 31 && !(i == 0 && j == 0) && tiles[newX][newY].getDirtHeight() < 4 && tiles[i + x][j + y].getDirtHeight() > 0 && !tiles[i + x][j + y].hasWater() && !tiles[i + x][j + y].isWaterSource()) {
+                    if (newX != notX || newY != notY && !(newX == 10 && (newY) == 6)) {
+                        return new int[]{newX, newY};
                     }
                 }
             }
@@ -315,7 +325,7 @@ public class Field {
             } catch (IndexOutOfBoundsException e) {
                 continue;
             }
-            if(t.getDirtHeight() < 1){
+            if (t.getDirtHeight() < 1) {
                 continue;
             }
 //            if(t.hasWater() || t.getDirtHeight() < 1){

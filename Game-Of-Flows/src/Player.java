@@ -20,10 +20,10 @@ public class Player {
     /**
      * Summary of priorities:
      *
-     * 
-     * 
-     * 
-     * 
+     *
+     *
+     *
+     *
      * EXCAVATOR 0:
      *
      * 1) Find neutral boats, pick them up and bring the to the water source
@@ -31,10 +31,10 @@ public class Player {
      * 2) Attack the opponent's canal
      *
      *
-     * 
-     * 
-     * 
-     * 
+     *
+     *
+     *
+     *
      * EXCAVATOR 1:
      *
      * 1) If a boat is in the water source and it is not #4, expand the boat
@@ -48,16 +48,16 @@ public class Player {
      * portion of the board to the right and up the right side
      *
      *
-     * 
-     * 
-     * 
-     * 
+     *
+     *
+     *
+     *
      * EXCAVATOR 2:
-     * 
+     *
      * 0) First, engage in canal protection (minimal, places to things of dirt)
-     * 
+     *
      * 1) If #0 is complete, grab a neutral boat if it is within 10 spaces
-     * 
+     *
      * 2) Else, engage in attack activities
      */
     // flag to say whether we are running in tournament mode or not.  this is based on parameter passed into main()
@@ -114,17 +114,17 @@ public class Player {
             try {
                 command0();
             } catch (Exception e) {
-                System.err.println(e.toString() + "\t" + turnNumber);
+                System.err.println(e.toString() + ":" + turnNumber + ":e0");
             }
             try {
                 command1();
             } catch (Exception e) {
-                System.err.println(e.toString() + "\t" + turnNumber);
+                System.err.println(e.toString() + ":" + turnNumber + ":e1");
             }
             try {
                 command2();
             } catch (Exception e) {
-                System.err.println(e.toString() + "\t" + turnNumber);
+                System.err.println(e.toString() + ":" + turnNumber + ":e2");
             }
 
             // Execute the current turn
@@ -140,8 +140,8 @@ public class Player {
     }
 
     // Used to identify if this excavator has stalled
-    private static int last1LocX;
-    private static int last1LocY;
+    private static int last0LocX;
+    private static int last0LocY;
 
     // The command phase this excavator is in
     static int zeroPhase = 0;
@@ -151,7 +151,7 @@ public class Player {
         Excavator e = field.getExcavator(0);
 
         //If this excavator has stalled, kill its commands and restart
-        if (e.getxLoc() == last1LocX && e.getyLoc() == last1LocY) {
+        if (e.getxLoc() == last0LocX && e.getyLoc() == last0LocY) {
             e.clearCommands();
         }
 
@@ -189,10 +189,12 @@ public class Player {
             }
         }
         //If the excavator is holding a boat and has no commands, bring it to the water source
-        if (e.isHoldingBoat() && e.getCommands().isEmpty()) {
+        if (e.isHoldingBoat()) {
+            e.clearCommands();
             int[] op = field.optimize(e.getxLoc(), e.getyLoc(), 10, 10);
             e.addCommand("target " + (op[0]) + " " + op[1]);
             e.addCommand("drop 10 10");
+            return;
         }
 
         //If there are no boats to be had, go into attack phase
@@ -218,8 +220,8 @@ public class Player {
             }
         }
         //Update position
-        last1LocX = e.getxLoc();
-        last1LocY = e.getyLoc();
+        last0LocX = e.getxLoc();
+        last0LocY = e.getyLoc();
     }
 
     //Excavator 1's command phase
@@ -231,10 +233,19 @@ public class Player {
     public static int[] beforeLastTile = new int[]{-1, -1};
     private static int canalLength = 0;
     private static boolean openedCanal = false;
+    // Used to identify if this excavator has stalled
+    private static int last1LocX;
+    private static int last1LocY;
 
     public static void command1() {
         //Get the excavator
         Excavator e = field.getExcavator(1);
+        
+                //If this excavator has stalled, kill its commands and restart
+//        if (e.getxLoc() == last1LocX && e.getyLoc() == last1LocY) {
+//            e.clearCommands();
+//        }
+        
         //If the water source has a boat and phase = 1
         if (field.getTile(10, 10).hasBoat() && onePhase == 1) {
             //If this excavator has commands
@@ -346,7 +357,9 @@ public class Player {
                     } else {
                         //Find a new canal tile
                         Tile t = field.getNextCanalTarget(lastTile[0], lastTile[1]);
+                        
                         if (t != null) {
+                            System.err.println(turnNumber + ":" + "1" + t.x + ":" + t.y);
                             canalLength++;
                             beforeLastTile[0] = lastTile[0];
                             beforeLastTile[1] = lastTile[1];
@@ -370,6 +383,9 @@ public class Player {
                 }
             }
         }
+        //Update position
+        last1LocX = e.getxLoc();
+        last1LocY = e.getyLoc();
     }
 
     private static int twoPhase = 0;
@@ -377,6 +393,15 @@ public class Player {
     public static void command2() {
         //Get excavator #2
         Excavator e = field.getExcavator(2);
+
+        if (turnNumber > 170 && field.getTile(skipTile[0], skipTile[1]).getDirtHeight() > 0) {
+            int[] target = new int[]{skipTile[0], skipTile[1]};
+            int[] op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+            e.addCommand("target " + (op[0]) + " " + op[1]);
+            int[] dump = field.findAdjacentDump(op[0], op[1], target[0], target[1]);
+            e.addCommand("dig " + target[0] + " " + target[1]);
+            e.addCommand("drop " + (dump[0]) + " " + dump[1]);
+        }
 
         //If it has no commands
         if (e.getCommands().isEmpty()) {
@@ -397,8 +422,21 @@ public class Player {
                 e.addCommand("dig " + dirt[0] + " " + dirt[1]);
                 e.addCommand("drop " + (target[0]) + " " + target[1]);
 
-            }
-            if (field.findNearestBoatDistance(e.getxLoc(), e.getyLoc()) <= 10) {
+            } else if (field.getTile(9, 9).getDirtHeight() != 4) {
+                int[] target = new int[]{9, 9};
+                int[] op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+                e.addCommand("target " + (op[0]) + " " + op[1]);
+                int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+                e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+                e.addCommand("drop " + (target[0]) + " " + target[1]);
+            } else if (field.getTile(11, 9).getDirtHeight() != 4) {
+                int[] target = new int[]{11, 9};
+                int[] op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+                e.addCommand("target " + (op[0]) + " " + op[1]);
+                int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+                e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+                e.addCommand("drop " + (target[0]) + " " + target[1]);
+            } else if (field.findNearestBoatDistance(e.getxLoc(), e.getyLoc()) <= 20) {
                 int[] loc = field.findNearestBoat(e.getxLoc(), e.getyLoc());
                 if (loc == null) {
                     zeroPhase = 1;
@@ -416,9 +454,9 @@ public class Player {
             if (Player.fisTournament) {//No attack mode in debug mode
                 ArrayList<Tile> targets = field.findOpponentCanal();
                 if (targets.size() > 0) {
-                    Random r = new Random();
-                    Tile t = targets.get(r.nextInt(targets.size()));
-                    int[] target = new int[]{t.x, t.y};
+                    //Tile t = targets.get(r.nextInt(targets.size()));
+                    //int[] target = new int[]{t.x, t.y};
+                    int[] target = field.findOpponentStart();
                     int[] op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
                     e.addCommand("target " + (op[0]) + " " + op[1]);
                     int[] dirt = field.findAdjacentDirt(op[0], op[1]);
