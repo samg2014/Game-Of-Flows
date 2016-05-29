@@ -202,7 +202,7 @@ public class Field {
         return distance;
     }
 
-    int[][] dontDig = new int[][]{{9, 9}, {9, 8}, {9, 7}, {9, 6}, {11, 9}, {11, 8}, {11, 7}, {11, 6}, {9, 10}, {9,11}, {10,11}, {11,11}, {11,10}};
+    int[][] dontDig = new int[][]{{9, 9}, {9, 8}, {9, 7}, {9, 6}, {11, 9}, {11, 8}, {11, 7}, {11, 6}, {9, 10}, {9,11}, {10,11}, {11,11}, {11,10}, {10,9}, {10,8}, {10,7}, {10,6}};
 
     public int[] findAdjacentDirt(int x, int y) {
         int[] coordinates = new int[2];
@@ -354,5 +354,67 @@ public class Field {
             Player.out.println("Next tile: " + ret);
         }
         return ret;
+    }
+    
+    public Tile getNearestWaterHole()
+    {
+        Tile[] waterHoles = new Tile[4];
+        int next = 0;
+        for(Tile[] i : tiles)
+        {
+            for(Tile j : i)
+            {
+                if(j.isWaterHole())
+                {
+                    waterHoles[next++] = j;
+                }
+            }
+        }
+        
+        Tile minDistance = waterHoles[0];
+        for(int i = 1; i < waterHoles.length; i++)
+        {
+            if(Math.sqrt(Math.pow(waterHoles[i].x - 10, 2) + Math.pow(waterHoles[i].y - 10, 2)) < 
+                    Math.sqrt(Math.pow(minDistance.x - 10, 2) + Math.pow(minDistance.y - 10, 2)) )
+            {
+                minDistance = waterHoles[i];
+            }
+        }
+         return minDistance;
+    }
+    
+    public ArrayList<Tile> getPathToWaterHole()
+    {
+        ArrayList<Tile> waterHolePath = new ArrayList<Tile>();
+        
+        waterHolePath.add(new Tile(10,5));
+        waterHolePath.add(new Tile(10,4));
+        waterHolePath.add(new Tile(10,3));
+        waterHolePath.add(new Tile(10,2));
+        waterHolePath.add(new Tile(10,1));
+        waterHolePath.add(new Tile(10,0));
+        
+        Tile nearest = getNearestWaterHole();
+        if(nearest.x > 10)
+        {
+            for(int i = 10; i <= nearest.x; i++)
+            {
+                waterHolePath.add(new Tile(0, i));
+            }
+        }
+        else
+        {
+            for(int i = 10; i>= nearest.x; i++)
+            {
+                waterHolePath.add(new Tile(0,i));
+            }
+        }
+        
+        for(int i = 0; i <= nearest.y; i++)
+        {
+            waterHolePath.add(new Tile(nearest.x, i));
+        }
+        
+        return waterHolePath;
     }
 }
