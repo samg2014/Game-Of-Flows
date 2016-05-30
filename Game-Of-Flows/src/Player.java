@@ -3,6 +3,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -59,6 +60,20 @@ public class Player {
      * 1) If #0 is complete, grab a neutral boat if it is within 20 spaces
      *
      * 2) Else, engage in attack activities
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * New strategy:?
+     * 
+     * #0:
+     * Grab boats, protect canal
+     * #1:
+     * Protect canal, build long canal
+     * #2:
+     * Grab boats, protect canal
      */
     // flag to say whether we are running in tournament mode or not.  this is based on parameter passed into main()
     private static boolean fisTournament = false;
@@ -69,8 +84,8 @@ public class Player {
     // holds information about all the excavators on the field
     //private Excavator[] fExcavators;
     // scores for each player
-    private int redScore;
-    private int blueScore;
+    private static int redScore;
+    private static int blueScore;
 
     private static int turnNumber;
 
@@ -102,6 +117,23 @@ public class Player {
 
             pathFinder = new AStarPathFinder(field.convertToMap(), 50);
 
+            try {
+                secondCanal = field.getPathToWaterHole();
+            } catch (Exception e) {
+                System.err.println(e.getMessage() + ":Player Get Second Canal");
+                for (StackTraceElement el : e.getStackTrace()) {
+                    System.err.println("\t" + el);
+                }
+            }
+
+            ArrayList<int[]> dontDump = new ArrayList<>();
+            dontDump.addAll(canal);
+            dontDump.add(skipTile);
+            for (Tile t : secondCanal) {
+                dontDump.add(new int[]{t.x, t.y});
+            }
+            field.dontDump = dontDump;
+
             if (a && out != null) {
                 out.println("-----------------------------------");
                 out.println("----------------" + turnNumber + "-----------------");
@@ -115,16 +147,25 @@ public class Player {
                 command0();
             } catch (Exception e) {
                 System.err.println(e.toString() + ":" + turnNumber + ":e0");
+                for (StackTraceElement el : e.getStackTrace()) {
+                    System.err.println("\t" + el);
+                }
             }
             try {
                 command1();
             } catch (Exception e) {
                 System.err.println(e.toString() + ":" + turnNumber + ":e1");
+                for (StackTraceElement el : e.getStackTrace()) {
+                    System.err.println("\t" + el);
+                }
             }
             try {
                 command2();
             } catch (Exception e) {
                 System.err.println(e.toString() + ":" + turnNumber + ":e2");
+                for (StackTraceElement el : e.getStackTrace()) {
+                    System.err.println("\t" + el);
+                }
             }
 
             // Execute the current turn
@@ -138,6 +179,8 @@ public class Player {
             turnNumber = in.nextInt();
         }
     }
+
+    public static int numCapturedBoats = 0;
 
     // Used to identify if this excavator has stalled
     private static int last0LocX;
@@ -162,13 +205,16 @@ public class Player {
         }
 
         //If this excavator is not holding a boat and has no commands, try to find a boat
-        if (!e.isHoldingBoat() && e.getCommands().isEmpty()) {
+        if (!e.isHoldingBoat()) {
+
             //Get the location for the nearest boat
             int[] loc = field.findNearestBoat(e.getxLoc(), e.getyLoc());
             //If there is no neares boat, set phase to 1
             if (loc == null) {
                 zeroPhase = 1;
             } else { // If there is a boat
+                //Prevents targeting a boat that has been taken
+                e.clearCommands();
                 //Optimize a target to get it
                 int[] op = field.optimize(e.getxLoc(), e.getyLoc(), loc[0], loc[1]);
                 //Target that tile
@@ -200,7 +246,51 @@ public class Player {
         //If there are no boats to be had, go into attack phase
         if (zeroPhase == 1 && e.getCommands().isEmpty()) {
             //ATTACK CODE
-            if (Player.fisTournament) {//No attacking in debug mode
+            if (field.getNumberRedBoats() == 4) {
+                if (field.getTile(9, 10).getDirtHeight() < 4) {
+                    int[] target = new int[]{9, 10};
+                    int[] op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+                    e.addCommand("target " + (op[0]) + " " + op[1]);
+                    int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+                    e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+                    e.addCommand("drop " + (target[0]) + " " + target[1]);
+                } else if (field.getTile(9, 11).getDirtHeight() < 4) {
+                    int[] target = new int[]{9, 11};
+                    int[] op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+                    e.addCommand("target " + (op[0]) + " " + op[1]);
+                    int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+                    e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+                    e.addCommand("drop " + (target[0]) + " " + target[1]);
+                } else if (field.getTile(11, 10).getDirtHeight() < 4) {
+                    int[] target = new int[]{11, 10};
+                    int[] op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+                    e.addCommand("target " + (op[0]) + " " + op[1]);
+                    int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+                    e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+                    e.addCommand("drop " + (target[0]) + " " + target[1]);
+                } else if (field.getTile(11, 11).getDirtHeight() < 4) {
+                    int[] target = new int[]{11, 11};
+                    int[] op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+                    e.addCommand("target " + (op[0]) + " " + op[1]);
+                    int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+                    e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+                    e.addCommand("drop " + (target[0]) + " " + target[1]);
+                } else if (field.getTile(9, 8).getDirtHeight() < 4) {
+                    int[] target = new int[]{9, 8};
+                    int[] op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+                    e.addCommand("target " + (op[0]) + " " + op[1]);
+                    int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+                    e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+                    e.addCommand("drop " + (target[0]) + " " + target[1]);
+                } else if (field.getTile(11, 8).getDirtHeight() < 4) {
+                    int[] target = new int[]{11, 8};
+                    int[] op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+                    e.addCommand("target " + (op[0]) + " " + op[1]);
+                    int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+                    e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+                    e.addCommand("drop " + (target[0]) + " " + target[1]);
+                }
+            } else if (Player.fisTournament) {//No attacking in debug mode
                 //Find the opponents canal
                 ArrayList<Tile> targets = field.findOpponentCanal();
                 if (targets.size() > 0) {
@@ -231,9 +321,10 @@ public class Player {
     public static int onePhase = 0;
     //The canal being build
     public static ArrayList<int[]> canal = new ArrayList<>();
+    public static ArrayList<Tile> secondCanal;
     public static final int[] skipTile = new int[]{10, 6};
-    public static int[] lastTile = new int[]{10, 6};
-    public static int[] beforeLastTile = new int[]{-1, -1};
+//    public static int[] lastTile = new int[]{10, 6};
+//    public static int[] beforeLastTile = new int[]{-1, -1};
     private static int canalLength = 0;
     private static boolean openedCanal = false;
     // Used to identify if this excavator has stalled
@@ -244,7 +335,7 @@ public class Player {
         //Get the excavator
         Excavator e = field.getExcavator(1);
 
-                //If this excavator has stalled, kill its commands and restart
+        //If this excavator has stalled, kill its commands and restart
 //        if (e.getxLoc() == last1LocX && e.getyLoc() == last1LocY) {
 //            e.clearCommands();
 //        }
@@ -254,12 +345,6 @@ public class Player {
             if (!e.getCommands().isEmpty()) {
                 //Clear the commands
                 e.clearCommands();
-                //If its last digging job is incomplete, rollback the commands
-                if (field.getTile(lastTile[0], lastTile[1]).getDirtHeight() >= 1) {
-                    canalLength--;
-                    lastTile[0] = beforeLastTile[0];
-                    lastTile[1] = beforeLastTile[1];
-                }
             }
             //Set phase to 0
             onePhase = 0;
@@ -315,6 +400,7 @@ public class Player {
                         e.addCommand("dig " + target[0] + " " + target[1]);
                         dump = field.findAdjacentDump(op[0], op[1], target[0], target[1]);
                         e.addCommand("drop " + dump[0] + " " + dump[1]);
+                        secondCanal.add(0, field.getTile(target[0], target[1]));
                     }
                 }
 
@@ -329,13 +415,13 @@ public class Player {
                     //Find the travel time for the boats along the canal
                     int travelTime = 0;
                     try {
-                        travelTime = (canalLength / field.getTile(10, 9).getWaterFlow());
+                        travelTime = ((5 + secondCanal.size()) / field.getTile(10, 9).getWaterFlow());
                     } catch (ArithmeticException ae) {
                         //For if water flow is equal to 0
                     }
 
                     //Check to see if it is time to open the canal
-                    if (p != null && 199 - Player.turnNumber - p.getLength() - travelTime < 2) {
+                    if (p != null && 199 - Player.turnNumber - p.getLength() - travelTime < 10) {
                         //If it is, let everyone know
                         onePhase = 2;
 
@@ -356,30 +442,81 @@ public class Player {
 
                         openedCanal = true;
                         canal.add(skipTile);
+                        secondCanal.stream().forEach((t) -> {
+                            canal.add(new int[]{t.x, t.y});
+                        });
                     } else {
-                        //Find a new canal tile
-                        Tile t = field.getNextCanalTarget(lastTile[0], lastTile[1]);
-
-                        if (t != null) {
-                            System.err.println(turnNumber + ":" + "1" + t.x + ":" + t.y);
-                            canalLength++;
-                            beforeLastTile[0] = lastTile[0];
-                            beforeLastTile[1] = lastTile[1];
-                            lastTile[0] = t.x;
-                            lastTile[1] = t.y;
-
-                            //Dig it out
-                            op = field.optimize(e.getxLoc(), e.getyLoc(), t.x, t.y);
-                            e.addCommand("target " + (op[0]) + " " + op[1]);
-                            if (e.isHoldingDirt()) {
-                                int[] dump;
+                        for (Tile t : secondCanal) {
+                            if (Player.out != null) {
+                                Player.out.println(t.getDirtHeight());
+                            }
+                            if (t.getDirtHeight() > 0) {
+                                op = field.optimize(e.getxLoc(), e.getyLoc(), t.x, t.y);
+                                e.addCommand("target " + (op[0]) + " " + op[1]);
+                                if (e.isHoldingDirt()) {
+                                    int[] dump;
+                                    dump = field.findAdjacentDump(op[0], op[1], t.x, t.y);
+                                    e.addCommand("drop " + dump[0] + " " + dump[1]);
+                                }
+                                e.addCommand("dig " + t.x + " " + t.y);
+                                int dump[];
                                 dump = field.findAdjacentDump(op[0], op[1], t.x, t.y);
                                 e.addCommand("drop " + dump[0] + " " + dump[1]);
+                                t.dug = true;
+                                break;
                             }
-                            e.addCommand("dig " + t.x + " " + t.y);
-                            int dump[];
-                            dump = field.findAdjacentDump(op[0], op[1], t.x, t.y);
-                            e.addCommand("drop " + dump[0] + " " + dump[1]);
+
+//                            if (field.getTile(9, 8).getDirtHeight() < 2) {
+//                                int[] target = new int[]{9, 8};
+//                                op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+//                                e.addCommand("target " + (op[0]) + " " + op[1]);
+//                                if (e.isHoldingDirt()) {
+//                                    int[] dump;
+//                                    dump = field.findAdjacentDump(op[0], op[1], target[0], target[1]);
+//                                    e.addCommand("drop " + dump[0] + " " + dump[1]);
+//                                }
+//                                int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+//                                e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+//                                e.addCommand("drop " + (target[0]) + " " + target[1]);
+//                            }
+//                            else if (field.getTile(11, 8).getDirtHeight() < 2) {
+//                                int[] target = new int[]{11, 8};
+//                                op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+//                                e.addCommand("target " + (op[0]) + " " + op[1]);
+//                                if (e.isHoldingDirt()) {
+//                                    int[] dump;
+//                                    dump = field.findAdjacentDump(op[0], op[1], target[0], target[1]);
+//                                    e.addCommand("drop " + dump[0] + " " + dump[1]);
+//                                }
+//                                int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+//                                e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+//                                e.addCommand("drop " + (target[0]) + " " + target[1]);
+//                            }
+//                            else if (field.getTile(9, 10).getDirtHeight() < 2) {
+//                                int[] target = new int[]{9, 10};
+//                                op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+//                                e.addCommand("target " + (op[0]) + " " + op[1]);
+//                                if (e.isHoldingDirt()) {
+//                                    int[] dump;
+//                                    dump = field.findAdjacentDump(op[0], op[1], target[0], target[1]);
+//                                    e.addCommand("drop " + dump[0] + " " + dump[1]);
+//                                }
+//                                int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+//                                e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+//                                e.addCommand("drop " + (target[0]) + " " + target[1]);
+//                            } else if (field.getTile(11, 10).getDirtHeight() < 2) {
+//                                int[] target = new int[]{11, 10};
+//                                op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+//                                e.addCommand("target " + (op[0]) + " " + op[1]);
+//                                if (e.isHoldingDirt()) {
+//                                    int[] dump;
+//                                    dump = field.findAdjacentDump(op[0], op[1], target[0], target[1]);
+//                                    e.addCommand("drop " + dump[0] + " " + dump[1]);
+//                                }
+//                                int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+//                                e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+//                                e.addCommand("drop " + (target[0]) + " " + target[1]);
+//                            }
                         }
                     }
                 }
@@ -392,30 +529,149 @@ public class Player {
 
     private static int twoPhase = 0;
 
+    public static int last2LocX;
+    public static int last2LocY;
+    public static int stallCount;
+
     public static void command2() {
         //Get excavator #2
         Excavator e = field.getExcavator(2);
 
-//        if (turnNumber > 170 && field.getTile(skipTile[0], skipTile[1]).getDirtHeight() > 0) {
-//            int[] target = new int[]{skipTile[0], skipTile[1]};
-//            int[] op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
-//            e.addCommand("target " + (op[0]) + " " + op[1]);
-//            int[] dump = field.findAdjacentDump(op[0], op[1], target[0], target[1]);
-//            e.addCommand("dig " + target[0] + " " + target[1]);
-//            e.addCommand("drop " + (dump[0]) + " " + dump[1]);
-//        }
+        if (last2LocX == e.getxLoc() && last2LocY == e.getyLoc()) {
+            stallCount++;
+            if (stallCount >= 3) {
+                e.clearCommands();
+            }
+        } else {
+            stallCount = 0;
+        }
+        int[] op = field.optimize(e.getxLoc(), e.getyLoc(), skipTile[0], skipTile[1]);
+        Path p = pathFinder.findPath(e.getxLoc(), e.getyLoc(), op[0], op[1]);
+
+        //Find the travel time for the boats along the canal
+        int travelTime = 0;
+        try {
+            travelTime = ((5 + secondCanal.size()) / field.getTile(10, 9).getWaterFlow());
+        } catch (ArithmeticException ae) {
+            //For if water flow is equal to 0
+        }
+
+        //Check to see if it is time to open the canal
+        if (p != null && 199 - Player.turnNumber - p.getLength() - travelTime < 10) {
+            for (Tile t : secondCanal) {
+                if (Player.out != null) {
+                    Player.out.println(t.getDirtHeight());
+                }
+                if (t.getDirtHeight() > 0) {
+                    op = field.optimize(e.getxLoc(), e.getyLoc(), t.x, t.y);
+                    e.addCommand("target " + (op[0]) + " " + op[1]);
+                    if (e.isHoldingDirt()) {
+                        int[] dump;
+                        dump = field.findAdjacentDump(op[0], op[1], t.x, t.y);
+                        e.addCommand("drop " + dump[0] + " " + dump[1]);
+                    }
+                    e.addCommand("dig " + t.x + " " + t.y);
+                    int dump[];
+                    dump = field.findAdjacentDump(op[0], op[1], t.x, t.y);
+                    e.addCommand("drop " + dump[0] + " " + dump[1]);
+                    t.dug = true;
+                    break;
+                }
+            }
+            return;
+        }
+
+        if (field.getNumberRedBoats() == 4 && e.getCommands().isEmpty()) {
+            Random r = new Random();
+            int i = r.nextInt(6);
+            if (field.getTile(9, 10).getDirtHeight() < 4 && i == 0) {
+                int[] target = new int[]{9, 10};
+                op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+                e.addCommand("target " + (op[0]) + " " + op[1]);
+                if (e.isHoldingDirt()) {
+                    int[] dump;
+                    dump = field.findAdjacentDump(op[0], op[1], target[0], target[1]);
+                    e.addCommand("drop " + dump[0] + " " + dump[1]);
+                }
+                int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+                e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+                e.addCommand("drop " + (target[0]) + " " + target[1]);
+            } else if (field.getTile(9, 11).getDirtHeight() < 4 && i == 1) {
+                int[] target = new int[]{9, 11};
+                op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+                e.addCommand("target " + (op[0]) + " " + op[1]);
+                if (e.isHoldingDirt()) {
+                    int[] dump;
+                    dump = field.findAdjacentDump(op[0], op[1], target[0], target[1]);
+                    e.addCommand("drop " + dump[0] + " " + dump[1]);
+                }
+                int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+                e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+                e.addCommand("drop " + (target[0]) + " " + target[1]);
+            } else if (field.getTile(11, 10).getDirtHeight() < 4 && i == 2) {
+                int[] target = new int[]{11, 10};
+                op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+                e.addCommand("target " + (op[0]) + " " + op[1]);
+                if (e.isHoldingDirt()) {
+                    int[] dump;
+                    dump = field.findAdjacentDump(op[0], op[1], target[0], target[1]);
+                    e.addCommand("drop " + dump[0] + " " + dump[1]);
+                }
+                int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+                e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+                e.addCommand("drop " + (target[0]) + " " + target[1]);
+            } else if (field.getTile(11, 11).getDirtHeight() < 4 && i == 3) {
+                int[] target = new int[]{11, 11};
+                op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+                e.addCommand("target " + (op[0]) + " " + op[1]);
+                if (e.isHoldingDirt()) {
+                    int[] dump;
+                    dump = field.findAdjacentDump(op[0], op[1], target[0], target[1]);
+                    e.addCommand("drop " + dump[0] + " " + dump[1]);
+                }
+                int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+                e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+                e.addCommand("drop " + (target[0]) + " " + target[1]);
+            } else if (field.getTile(9, 8).getDirtHeight() < 4 && i == 4) {
+                int[] target = new int[]{9, 8};
+                op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+                e.addCommand("target " + (op[0]) + " " + op[1]);
+                int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+                if (e.isHoldingDirt()) {
+                    int[] dump;
+                    dump = field.findAdjacentDump(op[0], op[1], target[0], target[1]);
+                    e.addCommand("drop " + dump[0] + " " + dump[1]);
+                }
+                e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+                e.addCommand("drop " + (target[0]) + " " + target[1]);
+            } else if (field.getTile(11, 8).getDirtHeight() < 4 && i == 5) {
+                int[] target = new int[]{11, 8};
+                op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+                e.addCommand("target " + (op[0]) + " " + op[1]);
+                if (e.isHoldingDirt()) {
+                    int[] dump;
+                    dump = field.findAdjacentDump(op[0], op[1], target[0], target[1]);
+                    e.addCommand("drop " + dump[0] + " " + dump[1]);
+                }
+                int[] dirt = field.findAdjacentDirt(op[0], op[1]);
+                e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+                e.addCommand("drop " + (target[0]) + " " + target[1]);
+            }
+        }
+        if (twoPhase == 2 && (field.getTile(9, 9).getDirtHeight() < 4 || field.getTile(11, 9).getDirtHeight() < 4)) {
+            e.clearCommands();
+            twoPhase = 1;
+        }
         //If it has no commands
         if (e.getCommands().isEmpty()) {
-
             //First things first, protect the canal that holds the boats
             if (twoPhase == 0) {
                 twoPhase = 1;
                 int[] target = new int[]{11, 9};
-                int[] op = new int[]{12, 10};
+                op = new int[]{12, 10};
                 e.addCommand("dig 1 0");
                 e.addCommand("target " + (op[0]) + " " + op[1]);
                 e.addCommand("drop " + (target[0]) + " " + target[1]);
-
                 target = new int[]{9, 9};
                 op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
                 e.addCommand("target " + (op[0]) + " " + op[1]);
@@ -423,26 +679,37 @@ public class Player {
                 e.addCommand("dig " + dirt[0] + " " + dirt[1]);
                 e.addCommand("drop " + (target[0]) + " " + target[1]);
 
-            } else if (field.getTile(9, 9).getDirtHeight() != 4) {
-                int[] target = new int[]{9, 9};
-                int[] op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+            } else if (field.getTile(11, 9).getDirtHeight() < 4) {
+                int[] target = new int[]{11, 9};
+                op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
                 e.addCommand("target " + (op[0]) + " " + op[1]);
+                if (e.isHoldingDirt()) {
+                    int[] dump;
+                    dump = field.findAdjacentDump(op[0], op[1], target[0], target[1]);
+                    e.addCommand("drop " + dump[0] + " " + dump[1]);
+                }
                 int[] dirt = field.findAdjacentDirt(op[0], op[1]);
                 e.addCommand("dig " + dirt[0] + " " + dirt[1]);
                 e.addCommand("drop " + (target[0]) + " " + target[1]);
-            } else if (field.getTile(11, 9).getDirtHeight() != 4) {
-                int[] target = new int[]{11, 9};
-                int[] op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+            } else if (field.getTile(9, 9).getDirtHeight() < 4) {
+                int[] target = new int[]{9, 9};
+                op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
                 e.addCommand("target " + (op[0]) + " " + op[1]);
+                if (e.isHoldingDirt()) {
+                    int[] dump;
+                    dump = field.findAdjacentDump(op[0], op[1], target[0], target[1]);
+                    e.addCommand("drop " + dump[0] + " " + dump[1]);
+                }
                 int[] dirt = field.findAdjacentDirt(op[0], op[1]);
                 e.addCommand("dig " + dirt[0] + " " + dirt[1]);
                 e.addCommand("drop " + (target[0]) + " " + target[1]);
             } else if (field.findNearestBoatDistance(e.getxLoc(), e.getyLoc()) <= 20) {
+                twoPhase = 2;
                 int[] loc = field.findNearestBoat(e.getxLoc(), e.getyLoc());
                 if (loc == null) {
                     zeroPhase = 1;
                 } else {
-                    int[] op = field.optimize(e.getxLoc(), e.getyLoc(), loc[0], loc[1]);
+                    op = field.optimize(e.getxLoc(), e.getyLoc(), loc[0], loc[1]);
                     e.addCommand("target " + (op[0]) + " " + op[1]);
                     e.addCommand("pickup " + (loc[0]) + " " + loc[1]);
                     op = field.optimize(e.getxLoc(), e.getyLoc(), 10, 10);
@@ -455,10 +722,11 @@ public class Player {
             if (Player.fisTournament) {//No attack mode in debug mode
                 ArrayList<Tile> targets = field.findOpponentCanal();
                 if (targets.size() > 0) {
+                    twoPhase = 2;
                     //Tile t = targets.get(r.nextInt(targets.size()));
                     //int[] target = new int[]{t.x, t.y};
                     int[] target = field.findOpponentStart();
-                    int[] op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
+                    op = field.optimize(e.getxLoc(), e.getyLoc(), target[0], target[1]);
                     e.addCommand("target " + (op[0]) + " " + op[1]);
                     int[] dirt = field.findAdjacentDirt(op[0], op[1]);
                     e.addCommand("dig " + dirt[0] + " " + dirt[1]);

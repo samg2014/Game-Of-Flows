@@ -1,6 +1,5 @@
 
 import java.util.ArrayList;
-import java.util.Scanner;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -202,7 +201,7 @@ public class Field {
         return distance;
     }
 
-    int[][] dontDig = new int[][]{{9, 9}, {9, 8}, {9, 7}, {9, 6}, {11, 9}, {11, 8}, {11, 7}, {11, 6}, {9, 10}, {9,11}, {10,11}, {11,11}, {11,10}, {10,9}, {10,8}, {10,7}, {10,6}};
+    int[][] dontDig = new int[][]{{9, 9}, {9, 8}, {9, 7}, {9, 6}, {11, 9}, {11, 8}, {11, 7}, {11, 6}, {9, 10}, {9, 11}, {10, 11}, {11, 11}, {11, 10}, {10, 9}, {10, 8}, {10, 7}, {10, 6}};
 
     public int[] findAdjacentDirt(int x, int y) {
         int[] coordinates = new int[2];
@@ -225,13 +224,21 @@ public class Field {
         return coordinates;
     }
 
+    public ArrayList<int[]> dontDump;
+
     public int[] findAdjacentDump(int x, int y, int notX, int notY) {
         for (int i = -1; i <= 1; i++) {
+            two:
             for (int j = -1; j <= 1; j++) {
                 int newX = x + i;
                 int newY = y + j;
                 if (newX > -1 && newY > -1 && newX < 31 && newY < 31 && !(i == 0 && j == 0) && tiles[newX][newY].getDirtHeight() < 4 && tiles[i + x][j + y].getDirtHeight() > 0 && !tiles[i + x][j + y].hasWater() && !tiles[i + x][j + y].isWaterSource()) {
                     if (newX != notX || newY != notY && !(newX == 10 && (newY) == 6)) {
+                        for (int[] c : dontDump) {
+                            if (c[0] == newX && c[1] == newY) {
+                                continue two;
+                            }
+                        }
                         return new int[]{newX, newY};
                     }
                 }
@@ -355,66 +362,91 @@ public class Field {
         }
         return ret;
     }
-    
-    public Tile getNearestWaterHole()
-    {
-        Tile[] waterHoles = new Tile[4];
+
+    public Tile getNearestWaterHole() {
+        ArrayList<Tile> waterHoles = new ArrayList<>();
         int next = 0;
-        for(Tile[] i : tiles)
-        {
-            for(Tile j : i)
-            {
-                if(j.isWaterHole())
-                {
-                    waterHoles[next++] = j;
+        for (Tile[] i : tiles) {
+            for (Tile j : i) {
+                if (j.isWaterHole()) {
+                    if (j.x < 8 || j.x > 12) {
+                        waterHoles.add(j);
+                    }
                 }
             }
         }
-        
-        Tile minDistance = waterHoles[0];
-        for(int i = 1; i < waterHoles.length; i++)
-        {
-            if(Math.sqrt(Math.pow(waterHoles[i].x - 10, 2) + Math.pow(waterHoles[i].y - 10, 2)) < 
-                    Math.sqrt(Math.pow(minDistance.x - 10, 2) + Math.pow(minDistance.y - 10, 2)) )
-            {
-                minDistance = waterHoles[i];
+
+        Tile minDistance = waterHoles.get(0);
+        for (int i = 1; i < waterHoles.size(); i++) {
+            if (Math.sqrt(Math.pow(waterHoles.get(i).x - 10, 2) + Math.pow(waterHoles.get(i).y - 0, 2))
+                    < Math.sqrt(Math.pow(minDistance.x - 10, 2) + Math.pow(minDistance.y - 0, 2))) {
+                minDistance = waterHoles.get(i);
             }
         }
-         return minDistance;
+        return minDistance;
     }
-    
-    public ArrayList<Tile> getPathToWaterHole()
-    {
-        ArrayList<Tile> waterHolePath = new ArrayList<Tile>();
-        
-        waterHolePath.add(new Tile(10,5));
-        waterHolePath.add(new Tile(10,4));
-        waterHolePath.add(new Tile(10,3));
-        waterHolePath.add(new Tile(10,2));
-        waterHolePath.add(new Tile(10,1));
-        waterHolePath.add(new Tile(10,0));
-        
+
+    public ArrayList<Tile> getPathToWaterHole() {
+        ArrayList<Tile> waterHolePath = new ArrayList<>();
+
+        waterHolePath.add(tiles[10][5]);
+        waterHolePath.add(tiles[10][4]);
+        waterHolePath.add(tiles[10][3]);
+        waterHolePath.add(tiles[10][2]);
+        waterHolePath.add(tiles[10][1]);
+
         Tile nearest = getNearestWaterHole();
-        if(nearest.x > 10)
-        {
-            for(int i = 10; i <= nearest.x; i++)
-            {
-                waterHolePath.add(new Tile(0, i));
+        if (nearest.x > 10) {
+            for (int i = 10; i <= nearest.x; i++) {
+                try {
+                    if (Player.out != null) {
+                        Player.out.println(i);
+                    }
+                    waterHolePath.add(tiles[i][0]);
+                } catch (Exception e) {
+                    System.err.println(e.getMessage() + ":GetCanalPath:1");
+                }
+            }
+        } else {
+            for (int i = 10; i >= nearest.x; i--) {
+                try {
+                    if (Player.out != null) {
+                        Player.out.println(i);
+                    }
+                    waterHolePath.add(tiles[i][0]);
+                } catch (Exception e) {
+                    System.err.println(e.getMessage() + ":GetCanalPath:1");
+
+                }
             }
         }
-        else
-        {
-            for(int i = 10; i>= nearest.x; i++)
-            {
-                waterHolePath.add(new Tile(0,i));
+        if (Player.out != null) {
+            Player.out.println("\n");
+        }
+        for (int i = 1; i < nearest.y; i++) {
+            try {
+                if (Player.out != null) {
+                    Player.out.println(i);
+                }
+                waterHolePath.add(tiles[nearest.x][i]);
+            } catch (Exception e) {
+                System.err.println(e.getMessage() + ":GetCanalPath:1");
+
             }
         }
-        
-        for(int i = 0; i <= nearest.y; i++)
-        {
-            waterHolePath.add(new Tile(nearest.x, i));
-        }
-        
+
         return waterHolePath;
+    }
+
+    public int getNumberRedBoats() {
+        int num = 0;
+        for (Tile[] row : tiles) {
+            for (Tile t : row) {
+                if (t.hasBoat() && t.getBoatColor().equals(Color.RED)) {
+                    num++;
+                }
+            }
+        }
+        return num;
     }
 }

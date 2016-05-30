@@ -23,6 +23,10 @@ public class Tile {
     public int x;
     public int y;
     private int waterFlow;
+    public boolean dug = false;
+    public int dirtTargetHeight = 1;
+    public int priority = 0;
+    public boolean assigned = false;
     
     public Tile(int x, int y){
         this.x = x;
@@ -82,7 +86,7 @@ public class Tile {
 
     @Override
     public String toString() {
-        return "Tile{" + "x=" + x + ", y=" + y + ", dirtHeight=" + dirtHeight +"}";//", dirtHeight=" + dirtHeight + ", hasBoat=" + hasBoat + ", hasWater=" + hasWater + ", waterColor=" + waterColor + ", hasExcavator=" + hasExcavator + ", excavator=" + excavator + ", isWaterSource=" + isWaterSource + ", sourceColor=" + sourceColor + ", isWaterHole=" + isWaterHole + ", boatColor=" + boatColor + '}';
+        return "Tile{" + "x=" + x + ", y=" + y + ", dirtHeight=" + dirtHeight + ", dug=" + dug + "}";
     }
 
     public boolean hasBoat() {
