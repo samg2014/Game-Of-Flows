@@ -1,4 +1,3 @@
-
 import java.util.ArrayList;
 
 /*
@@ -53,7 +52,6 @@ public class Field {
 
                 // Grab the pair of character encoding this tile and get this tile to edit
                 String code = Player.in.next();
-                //Player.out.println(code);
                 Tile tile = tiles[i][j];
 
                 //Reset this tile
@@ -73,7 +71,6 @@ public class Field {
                 }
                 if (second.equals("N")) {
                     // this space holds a neutral (on land) boat
-                    //Player.out.println("Neutral boat at: " + tile.x + ", " + tile.y);
                     tile.setHasBoat(true);
                     tile.setBoatColor(Color.NEUTRAL);
                 }
@@ -136,6 +133,7 @@ public class Field {
             // Update the tile this excavator is on to hold this excavator
             this.tiles[xLoc][yLoc].setExcavator(this.excavators[e]);
             this.tiles[xLoc][yLoc].setHasExcavator(true);
+            this.tiles[xLoc][yLoc].assigned = false;
 
             // Set the excavator's data regarding what it holds
             this.excavators[e].setIsHoldingBoat(content.equals("b"));
@@ -148,7 +146,6 @@ public class Field {
         for (int y = 0; y < tiles.length; y++) {
             for (int x = 0; x < tiles[y].length; x++) {
                 Tile tile = tiles[x][y];
-                //Player.out.println(tile);
                 if (tile.getDirtHeight() != 1) {
                     map.terrain[x][y] = GameMap.BLOCKED;
                 } else if (tile.hasBoat()) {
@@ -160,6 +157,8 @@ public class Field {
                 } else if (tile.isWaterHole()) {
                     map.terrain[x][y] = GameMap.BLOCKED;
                 } else if (tile.isWaterSource()) {
+                    map.terrain[x][y] = GameMap.BLOCKED;
+                } else if (tile.assigned) {
                     map.terrain[x][y] = GameMap.BLOCKED;
                 } else {
                     map.terrain[x][y] = GameMap.OPEN;
@@ -186,6 +185,23 @@ public class Field {
         return loc;
     }
 
+    public int[] findFarthestBoat(int x, int y) {
+        double distance = Double.MIN_VALUE;
+        int[] loc = null;
+        for (int i = tiles.length - 1; i >= 0; i--) {
+            for (int j = tiles[i].length - 1; j >= 0; j--) {
+                Tile tile = tiles[i][j];
+                if (tile.hasBoat() && tile.getBoatColor() == Color.NEUTRAL) {
+                    if (Math.sqrt(Math.pow(Math.abs(tile.x - x), 2) + Math.pow(Math.abs(tile.y - y), 2)) > distance) {
+                        loc = new int[]{tile.x, tile.y};
+                        distance = Math.sqrt(Math.pow(Math.abs(tile.x - x), 2) + Math.pow(Math.abs(tile.y - y), 2));
+                    }
+                }
+            }
+        }
+        return loc;
+    }
+
     public double findNearestBoatDistance(int x, int y) {
         double distance = Double.MAX_VALUE;
         for (int i = tiles.length - 1; i >= 0; i--) {
@@ -201,8 +217,8 @@ public class Field {
         return distance;
     }
 
-    int[][] dontDig = new int[][]{{9, 9}, {9, 8}, {9, 7}, {9, 6}, {11, 9}, {11, 8}, {11, 7}, {11, 6}, {9, 10}, {9, 11}, {10, 11}, {11, 11}, {11, 10}, {10, 9}, {10, 8}, {10, 7}, {10, 6}};
-
+    //int[][] dontDig = new int[][]{{9, 9}, {9, 8}, {9, 7}, {9, 6}, {11, 9}, {11, 8}, {11, 7}, {11, 6}, {9, 10}, {9, 11}, {10, 11}, {11, 11}, {11, 10}, {10, 9}, {10, 8}, {10, 7}, {10, 6}};
+    ArrayList<Tile> dontDig = null;//getFillList(this.getPathToWaterHolePartTwo());
     public int[] findAdjacentDirt(int x, int y) {
         int[] coordinates = new int[2];
         for (int i = -1; i <= 1; i++) {
@@ -211,8 +227,8 @@ public class Field {
                 int newX = x + i;
                 int newY = y + j;
                 if (newX > -1 && (newY) > -1 && newX < 31 && (newY) < 31 && !(i == 0 && j == 0) && tiles[newX][newY].getDirtHeight() > 0 && !tiles[newX][newY].hasWater() && !tiles[newX][newY].isWaterSource()) {
-                    for (int[] c : dontDig) {
-                        if (c[0] == newX && c[1] == newY) {
+                    for (Tile c : dontDig) {
+                        if (c.x == newX && c.y == newY) {
                             continue two;
                         }
                     }
@@ -232,7 +248,7 @@ public class Field {
             for (int j = -1; j <= 1; j++) {
                 int newX = x + i;
                 int newY = y + j;
-                if (newX > -1 && newY > -1 && newX < 31 && newY < 31 && !(i == 0 && j == 0) && tiles[newX][newY].getDirtHeight() < 4 && tiles[i + x][j + y].getDirtHeight() > 0 && !tiles[i + x][j + y].hasWater() && !tiles[i + x][j + y].isWaterSource()) {
+                if (newX > -1 && newY > -1 && newX < 31 && newY < 31 && !(i == 0 && j == 0) && tiles[newX][newY].getDirtHeight() < 4 && !tiles[newX][newY].hasWater() && !tiles[newX][newY].isWaterSource() && !tiles[newX][newY].isWaterHole()) {
                     if (newX != notX || newY != notY && !(newX == 10 && (newY) == 6)) {
                         for (int[] c : dontDump) {
                             if (c[0] == newX && c[1] == newY) {
@@ -303,6 +319,7 @@ public class Field {
                     if (newX == x && newY == y) {
                         coordinates[0] = newX;
                         coordinates[1] = newY;
+                        //tiles[newX][newY].assigned = true;
                         return coordinates;
                     }
                     if (newX > -1 && newY > -1 && newX < 31 && newY < 31 && map.terrain[newX][newY] != GameMap.BLOCKED) {
@@ -316,14 +333,12 @@ public class Field {
             }
 
         }
+        //tiles[coordinates[0]][coordinates[1]].assigned = true;
         return coordinates;
     }
 
     public Tile getNextCanalTarget(int x, int y) {
         Tile ret = null;
-        if (Player.out != null) {
-            Player.out.println("NT: " + x + ", " + y);
-        }
         int[][] check = new int[][]{{0, -1}, {1, 0}, {0, 1}, {-1, 0}};
         for (int[] change : check) {
             Tile t;
@@ -338,9 +353,6 @@ public class Field {
 //            if(t.hasWater() || t.getDirtHeight() < 1){
 //                return t;
 //            }
-            if (Player.out != null) {
-                Player.out.println(t);
-            }
             int count = 0;
             for (int[] p : check) {
                 Tile i;
@@ -357,9 +369,6 @@ public class Field {
                 return t;
             }
         }
-        if (Player.out != null) {
-            Player.out.println("Next tile: " + ret);
-        }
         return ret;
     }
 
@@ -369,17 +378,38 @@ public class Field {
         for (Tile[] i : tiles) {
             for (Tile j : i) {
                 if (j.isWaterHole()) {
-                    if (j.x < 8 || j.x > 12) {
-                        waterHoles.add(j);
-                    }
+                    waterHoles.add(j);
                 }
             }
         }
 
         Tile minDistance = waterHoles.get(0);
         for (int i = 1; i < waterHoles.size(); i++) {
-            if (Math.sqrt(Math.pow(waterHoles.get(i).x - 10, 2) + Math.pow(waterHoles.get(i).y - 0, 2))
-                    < Math.sqrt(Math.pow(minDistance.x - 10, 2) + Math.pow(minDistance.y - 0, 2))) {
+            if (Math.sqrt(Math.pow(waterHoles.get(i).x - 10, 2) + Math.pow(waterHoles.get(i).y - 10, 2))
+                    < Math.sqrt(Math.pow(minDistance.x - 10, 2) + Math.pow(minDistance.y - 10, 2))) {
+                minDistance = waterHoles.get(i);
+            }
+        }
+        return minDistance;
+    }
+    
+    public Tile get2ndNearestWaterHole() {
+        ArrayList<Tile> waterHoles = new ArrayList<>();
+        int next = 0;
+        for (Tile[] i : tiles) {
+            for (Tile j : i) {
+                if (j.isWaterHole()) {
+                    waterHoles.add(j);
+                }
+            }
+        }
+        
+        Tile nearest = getNearestWaterHole();
+
+        Tile minDistance = waterHoles.get(0);
+        for (int i = 1; i < waterHoles.size(); i++) {
+            if (Math.sqrt(Math.pow(waterHoles.get(i).x - 10, 2) + Math.pow(waterHoles.get(i).y - 10, 2))
+                    < Math.sqrt(Math.pow(minDistance.x - 10, 2) + Math.pow(minDistance.y - 10, 2)) && waterHoles.get(i) != nearest) {
                 minDistance = waterHoles.get(i);
             }
         }
@@ -389,6 +419,24 @@ public class Field {
     public ArrayList<Tile> getPathToWaterHole() {
         ArrayList<Tile> waterHolePath = new ArrayList<>();
 
+//        waterHolePath.add(tiles[8][11]);
+//        waterHolePath.add(tiles[8][10]);
+//        waterHolePath.add(tiles[8][9]);
+//        waterHolePath.add(tiles[8][8]);
+//        waterHolePath.add(tiles[8][7]);
+//        waterHolePath.add(tiles[8][6]);
+//                
+//        waterHolePath.add(tiles[12][11]);
+//        waterHolePath.add(tiles[12][10]);
+//        waterHolePath.add(tiles[12][9]);
+//        waterHolePath.add(tiles[12][8]);
+//        waterHolePath.add(tiles[12][7]);
+//        waterHolePath.add(tiles[12][6]);
+        waterHolePath.add(tiles[10][9]);
+        waterHolePath.add(tiles[10][8]);
+        waterHolePath.add(tiles[10][7]);
+
+        waterHolePath.add(tiles[10][6]);
         waterHolePath.add(tiles[10][5]);
         waterHolePath.add(tiles[10][4]);
         waterHolePath.add(tiles[10][3]);
@@ -399,9 +447,6 @@ public class Field {
         if (nearest.x > 10) {
             for (int i = 10; i <= nearest.x; i++) {
                 try {
-                    if (Player.out != null) {
-                        Player.out.println(i);
-                    }
                     waterHolePath.add(tiles[i][0]);
                 } catch (Exception e) {
                     System.err.println(e.getMessage() + ":GetCanalPath:1");
@@ -410,9 +455,6 @@ public class Field {
         } else {
             for (int i = 10; i >= nearest.x; i--) {
                 try {
-                    if (Player.out != null) {
-                        Player.out.println(i);
-                    }
                     waterHolePath.add(tiles[i][0]);
                 } catch (Exception e) {
                     System.err.println(e.getMessage() + ":GetCanalPath:1");
@@ -420,14 +462,8 @@ public class Field {
                 }
             }
         }
-        if (Player.out != null) {
-            Player.out.println("\n");
-        }
         for (int i = 1; i < nearest.y; i++) {
             try {
-                if (Player.out != null) {
-                    Player.out.println(i);
-                }
                 waterHolePath.add(tiles[nearest.x][i]);
             } catch (Exception e) {
                 System.err.println(e.getMessage() + ":GetCanalPath:1");
@@ -448,5 +484,31 @@ public class Field {
             }
         }
         return num;
+    }
+
+    public ArrayList<Tile> getPathToWaterHolePartTwo() {
+        ArrayList<Tile> list = new ArrayList<>();
+
+        Path p = Player.canalFinder.findPath(10, 10, get2ndNearestWaterHole().x, get2ndNearestWaterHole().y);
+        
+        for(int i = 1; i < p.getLength()-1; i++){
+            list.add(tiles[p.getX(i)][p.getY(i)]);
+        }
+        
+        return list;
+    }
+    
+    public ArrayList<Tile> getFillList(ArrayList<Tile> canal){
+        ArrayList<Tile> list = new ArrayList<>();
+        int[][] neighbors = {{1,0}, {-1, 0}, {0,1}, {0,-1}};
+        for(Tile t : canal){
+            for(int[] c : neighbors){
+                Tile n = tiles[t.x + c[0]][t.y + c[1]];
+                if(!canal.contains(n) && !n.isWaterHole() && !n.isWaterSource() && !list.contains(n)){
+                    list.add(n);
+                }
+            }
+        }
+        return list;
     }
 }

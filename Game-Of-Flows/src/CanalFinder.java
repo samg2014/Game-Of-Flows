@@ -66,8 +66,7 @@ public class CanalFinder {
             OPEN.remove(current);
             CLOSED.add(current);
 
-            //Player.out.println(current.x + ", " + current.y);
-
+            
             int[][] neighbors = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
             // Search through all the neighbours of the current point evaluating
             // them as next steps
@@ -81,9 +80,7 @@ public class CanalFinder {
                 // Determine the location of the neighbour and evaluate it
                 int xp = x + current.x;
                 int yp = y + current.y;
-            
-                //Player.out.println("\t" + isValidLocation(current.x, current.y, xp, yp) );
-                
+                            
                 if (isValidLocation(current.x, current.y, xp, yp)) {
                     // The cost to get to this point is cost the current plus the movement
                     // cost to reach this point. Note that the heursitic value is only used
@@ -142,8 +139,7 @@ public class CanalFinder {
     protected boolean isValidLocation(int startX, int startY, int x, int y) {
         boolean invalid = (x < 0) || (y < 0) || (x >= MAP.getWidthInTiles()) || (y >= MAP.getHeightInTiles());
         if ((!invalid)) {
-            invalid = MAP.blocked(startX, startY, x, y);
-            //Player.out.println("\t\t" + MAP.blocked(startX, startY, x, y));
+            invalid = false;
         }
         return !invalid;
     }

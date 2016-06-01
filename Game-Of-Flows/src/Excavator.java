@@ -1,5 +1,6 @@
 
 import java.util.ArrayList;
+import java.util.Random;
 
 /*
  * Represents one of six excavators on the field
@@ -9,6 +10,7 @@ import java.util.ArrayList;
  * @author Sam
  */
 public class Excavator {
+
     public boolean idle_cleared = false;
     // Coordinates on the field of this excavator
     private int xLoc;
@@ -114,7 +116,7 @@ public class Excavator {
         if (this.color != Color.RED) {
             return;
         }
-        
+
         // Print out the next command to the engine or send the idle command
         while (!commands.isEmpty() && commands.get(0).startsWith("target")) {
             //Player.out.println(commands.get(0));
@@ -140,12 +142,18 @@ public class Excavator {
             Player.out.println("\t" + commands);
         }
         String command = !commands.isEmpty() ? commands.get(0) : "idle";
-        if(command.equals("idle") && ! idle_cleared){
+        if (command.equals("idle") && !idle_cleared) {
             idle_cleared = true;
             clearCommands();
             Player.command(this.id);
             execute();
             return;
+        }
+
+        if (command.equals("idle") && idle_cleared) {
+            Random r = new Random();
+            int[] op = Player.field.optimize(getxLoc(), getyLoc(), (r.nextInt(4) - 2 + getxLoc()), (r.nextInt(4) - 2 + getyLoc()));
+            addCommand("target " + op[0] + " " + op[1]);
         }
         System.out.println(command);
 
