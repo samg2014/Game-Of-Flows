@@ -494,7 +494,7 @@ public class Player {
                             field.getTile(dump[0], dump[1]).setDirtHeight(field.getTile(dump[0], dump[1]).getDirtHeight() + 1);
                             e.addCommand("drop " + dump[0] + " " + dump[1]);
                         }
-
+                    }
 //                    for (Tile t : secondCanal) {
 //                        if (t.getDirtHeight() > 0) {
 //                            op = field.optimize(e.getxLoc(), e.getyLoc(), t.x, t.y);
@@ -512,23 +512,23 @@ public class Player {
 //                            break;
 //                        }
 //                    }
-                        if (e.getCommands().isEmpty()) {
-                            for (Tile t : fillList) {
-                                if (t.getDirtHeight() < 2) {
-                                    op = field.optimize(e.getxLoc(), e.getyLoc(), t.x, t.y);
-                                    e.addCommand("target " + (op[0]) + " " + op[1]);
-                                    if (e.isHoldingDirt()) {
-                                        e.addCommand("drop " + t.x + " " + t.y);
-                                    }
-                                    int dirt[];
-                                    dirt = field.findAdjacentDirt(op[0], op[1]);
-                                    e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+                    if (e.getCommands().isEmpty()) {
+                        for (Tile t : fillList) {
+                            if (t.getDirtHeight() < 2) {
+                                op = field.optimize(e.getxLoc(), e.getyLoc(), t.x, t.y);
+                                e.addCommand("target " + (op[0]) + " " + op[1]);
+                                if (e.isHoldingDirt()) {
                                     e.addCommand("drop " + t.x + " " + t.y);
-                                    break;
                                 }
+                                int dirt[];
+                                dirt = field.findAdjacentDirt(op[0], op[1]);
+                                e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+                                e.addCommand("drop " + t.x + " " + t.y);
+                                break;
                             }
                         }
                     }
+
                 }
             }
             //Update position
@@ -640,13 +640,34 @@ public class Player {
 
     public static void command(int id) {
         if (id == 0) {
-            command0();
+            try {
+                command0();
+            } catch (Exception e) {
+                System.err.println(e.toString() + ":" + turnNumber + ":e0-c");
+                for (StackTraceElement el : e.getStackTrace()) {
+                    System.err.println("\t" + el);
+                }
+            }
         }
         if (id == 1) {
-            command1();
+            try {
+                command1();
+            } catch (Exception e) {
+                System.err.println(e.toString() + ":" + turnNumber + ":e1-c");
+                for (StackTraceElement el : e.getStackTrace()) {
+                    System.err.println("\t" + el);
+                }
+            }
         }
         if (id == 2) {
-            command2();
+            try {
+                command2();
+            } catch (Exception e) {
+                System.err.println(e.toString() + ":" + turnNumber + ":e2-c");
+                for (StackTraceElement el : e.getStackTrace()) {
+                    System.err.println("\t" + el);
+                }
+            }
         }
     }
 

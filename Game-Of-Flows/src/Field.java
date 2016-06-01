@@ -253,6 +253,7 @@ public class Field {
     public ArrayList<int[]> dontDump;
 
     public int[] findAdjacentDump(int x, int y, int notX, int notY) {
+        ArrayList<int[]> possible = new ArrayList<>();
         for (int i = -1; i <= 1; i++) {
             two:
             for (int j = -1; j <= 1; j++) {
@@ -265,12 +266,16 @@ public class Field {
                                 continue two;
                             }
                         }
-                        return new int[]{newX, newY};
+                        possible.add( new int[]{newX, newY});
                     }
                 }
             }
         }
-
+        for(int[] p : possible){
+            if(Player.fillList.contains(getTile(p[0], p[1]))){
+                return p;
+            }
+        }
         return null;
     }
 
@@ -531,8 +536,8 @@ public class Field {
         if (Player.out != null) {
             Player.out.println("getPathToWaterHolePartTwo()");
         }
-        Path p = Player.canalFinder.findPath(10, 10, get2ndNearestWaterHole().x, get2ndNearestWaterHole().y);
-//        Path p = Player.canalFinder.findPath(10, 10, getFarthestWaterHole().x, getFarthestWaterHole().y);
+//        Path p = Player.canalFinder.findPath(10, 10, get2ndNearestWaterHole().x, get2ndNearestWaterHole().y);
+        Path p = Player.canalFinder.findPath(10, 10, getFarthestWaterHole().x, getFarthestWaterHole().y);
         for (int i = 1; i < p.getLength() - 1; i++) {
             list.add(tiles[p.getX(i)][p.getY(i)]);
         }
