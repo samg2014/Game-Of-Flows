@@ -27,6 +27,7 @@ public class Tile {
     public int dirtTargetHeight = 1;
     public int priority = 0;
     public boolean assigned = false;
+    public boolean blocked = false;
     
     public Tile(int x, int y){
         this.x = x;

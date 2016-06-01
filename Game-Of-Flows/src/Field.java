@@ -149,20 +149,28 @@ public class Field {
                 Tile tile = tiles[x][y];
                 if (tile.getDirtHeight() != 1) {
                     map.terrain[x][y] = GameMap.BLOCKED;
+                    tile.blocked = true;
                 } else if (tile.hasBoat()) {
                     map.terrain[x][y] = GameMap.BLOCKED;
+                    tile.blocked = true;
                 } else if (tile.hasExcavator()) {
                     map.terrain[x][y] = GameMap.BLOCKED;
+                    tile.blocked = true;
                 } else if (tile.hasWater()) {
                     map.terrain[x][y] = GameMap.BLOCKED;
+                    tile.blocked = true;
                 } else if (tile.isWaterHole()) {
                     map.terrain[x][y] = GameMap.BLOCKED;
+                    tile.blocked = true;
                 } else if (tile.isWaterSource()) {
                     map.terrain[x][y] = GameMap.BLOCKED;
+                    tile.blocked = true;
                 } else if (tile.assigned) {
                     map.terrain[x][y] = GameMap.BLOCKED;
+                    tile.blocked = true;
                 } else {
                     map.terrain[x][y] = GameMap.OPEN;
+                    tile.blocked = false;
                 }
             }
         }
@@ -395,6 +403,31 @@ public class Field {
         return minDistance;
     }
 
+    public Tile getFarthestWaterHole() {
+        if (Player.out != null) {
+            Player.out.println("getFarthestWaterHole()");
+        }
+        ArrayList<Tile> waterHoles = new ArrayList<>();
+        for (Tile[] i : tiles) {
+            for (Tile j : i) {
+                if (j.isWaterHole()) {
+                    waterHoles.add(j);
+                }
+            }
+        }
+
+        Tile maxDistance = waterHoles.get(0);
+        for (Tile waterHole : waterHoles) {
+            if (Player.out != null) {
+                Player.out.println(maxDistance);
+            }
+            if (Math.sqrt(Math.pow(waterHole.x - 10, 2) + Math.pow(waterHole.y - 10, 2)) > Math.sqrt(Math.pow(maxDistance.x - 10, 2) + Math.pow(maxDistance.y - 10, 2))) {
+                maxDistance = waterHole;
+            }
+        }
+        return maxDistance;
+    }
+
     public Tile get2ndNearestWaterHole() {
         ArrayList<Tile> waterHoles = new ArrayList<>();
         int next = 0;
@@ -495,9 +528,11 @@ public class Field {
 
     public ArrayList<Tile> getPathToWaterHolePartTwo() {
         ArrayList<Tile> list = new ArrayList<>();
-
+        if (Player.out != null) {
+            Player.out.println("getPathToWaterHolePartTwo()");
+        }
         Path p = Player.canalFinder.findPath(10, 10, get2ndNearestWaterHole().x, get2ndNearestWaterHole().y);
-
+//        Path p = Player.canalFinder.findPath(10, 10, getFarthestWaterHole().x, getFarthestWaterHole().y);
         for (int i = 1; i < p.getLength() - 1; i++) {
             list.add(tiles[p.getX(i)][p.getY(i)]);
         }
@@ -510,9 +545,13 @@ public class Field {
         int[][] neighbors = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
         for (Tile t : canal) {
             for (int[] c : neighbors) {
-                Tile n = tiles[t.x + c[0]][t.y + c[1]];
-                if (!canal.contains(n) && !n.isWaterHole() && !n.isWaterSource() && !list.contains(n)) {
-                    list.add(n);
+                try {
+                    Tile n = tiles[t.x + c[0]][t.y + c[1]];
+                    if (!canal.contains(n) && !n.isWaterHole() && !n.isWaterSource() && !list.contains(n)) {
+                        list.add(n);
+                    }
+                } catch (IndexOutOfBoundsException e) {
+
                 }
             }
         }

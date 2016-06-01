@@ -129,7 +129,7 @@ public class Player {
             }
             field.dontDump = dontDump;
 
-            if (a && out != null) {
+            if (out != null) {
                 out.println("-----------------------------------");
                 out.println("----------------" + turnNumber + "-----------------");
                 out.println("-----------------------------------");
@@ -196,8 +196,7 @@ public class Player {
         } else {
             zeroStallCount = 0;
         }
-        
-        
+
         //Update position
         last0LocX = e.getxLoc();
         last0LocY = e.getyLoc();
@@ -399,45 +398,143 @@ public class Player {
 //                            canal.add(new int[]{t.x, t.y});
 //                        });
 //                    } else {
+                    ArrayList<Tile> workList = new ArrayList<>();
                     for (Tile t : secondCanal) {
                         if (t.getDirtHeight() > 0) {
+                            workList.add(t);
+                        }
+                    }
+
+                    if (workList.size() == 1) {
+                        Tile t = workList.get(0);
+                        op = field.optimize(e.getxLoc(), e.getyLoc(), t.x, t.y);
+                        e.addCommand("target " + (op[0]) + " " + op[1]);
+                        if (e.isHoldingDirt()) {
+                            int[] dump;
+                            dump = field.findAdjacentDump(op[0], op[1], t.x, t.y);
+                            field.getTile(dump[0], dump[1]).setDirtHeight(field.getTile(dump[0], dump[1]).getDirtHeight() + 1);
+                            e.addCommand("drop " + dump[0] + " " + dump[1]);
+                        }
+                        e.addCommand("dig " + t.x + " " + t.y);
+                        int dump[];
+                        dump = field.findAdjacentDump(op[0], op[1], t.x, t.y);
+                        field.getTile(dump[0], dump[1]).setDirtHeight(field.getTile(dump[0], dump[1]).getDirtHeight() + 1);
+                        e.addCommand("drop " + dump[0] + " " + dump[1]);
+                    } else if (workList.size() > 1) {
+                        Tile first = workList.get(0);
+                        Tile second = workList.get(1);
+                        ArrayList<Tile> firstNeighbors = new ArrayList<>();
+                        ArrayList<Tile> secondNeighbors = new ArrayList<>();
+                        ArrayList<Tile> common = new ArrayList<>();
+                        int[][] neighbors = {{0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}};
+                        for (int[] n : neighbors) {
+                            try {
+                                if (!field.getTile(first.x + n[0], first.y + n[1]).blocked && !secondCanal.contains(field.getTile(first.x + n[0], first.y + n[1]))) {
+                                    firstNeighbors.add(field.getTile(first.x + n[0], first.y + n[1]));
+                                }
+                            } catch (Exception ex) {
+
+                            }
+                            try {
+                                if (!field.getTile(second.x + n[0], second.y + n[1]).blocked && !secondCanal.contains(field.getTile(second.x + n[0], second.y + n[1]))) {
+                                    secondNeighbors.add(field.getTile(second.x + n[0], second.y + n[1]));
+                                }
+                            } catch (Exception ex) {
+
+                            }
+                        }
+
+                        for (Tile t : firstNeighbors) {
+                            if (secondNeighbors.contains(t)) {
+                                common.add(t);
+                            }
+                        }
+
+                        if (common.size() < 1) {
+                            Tile t = workList.get(0);
                             op = field.optimize(e.getxLoc(), e.getyLoc(), t.x, t.y);
                             e.addCommand("target " + (op[0]) + " " + op[1]);
                             if (e.isHoldingDirt()) {
                                 int[] dump;
                                 dump = field.findAdjacentDump(op[0], op[1], t.x, t.y);
+                                field.getTile(dump[0], dump[1]).setDirtHeight(field.getTile(dump[0], dump[1]).getDirtHeight() + 1);
                                 e.addCommand("drop " + dump[0] + " " + dump[1]);
                             }
                             e.addCommand("dig " + t.x + " " + t.y);
                             int dump[];
                             dump = field.findAdjacentDump(op[0], op[1], t.x, t.y);
+                            field.getTile(dump[0], dump[1]).setDirtHeight(field.getTile(dump[0], dump[1]).getDirtHeight() + 1);
                             e.addCommand("drop " + dump[0] + " " + dump[1]);
-                            t.dug = true;
-                            break;
-                        }
-                    }
-                    if (e.getCommands().isEmpty()) {
-                        for (Tile t : fillList) {
-                            if (t.getDirtHeight() < 2) {
-                                op = field.optimize(e.getxLoc(), e.getyLoc(), t.x, t.y);
-                                e.addCommand("target " + (op[0]) + " " + op[1]);
-                                if (e.isHoldingDirt()) {
-                                    e.addCommand("drop " + t.x + " " + t.y);
+                        } else {
+                            double minD = Double.MAX_VALUE;
+                            Tile min = null;
+                            for (Tile t : common) {
+                                if (Math.sqrt(Math.pow(Math.abs(t.x - e.getxLoc()), 2) + Math.pow(Math.abs(t.y - e.getyLoc()), 2)) < minD) {
+                                    minD = Math.sqrt(Math.pow(Math.abs(t.x - e.getxLoc()), 2) + Math.pow(Math.abs(t.y - e.getyLoc()), 2));
+                                    min = t;
                                 }
-                                int dirt[];
-                                dirt = field.findAdjacentDirt(op[0], op[1]);
-                                e.addCommand("dig " + dirt[0] + " " + dirt[1]);
-                                e.addCommand("drop " + t.x + " " + t.y);
-                                break;
+                            }
+
+                            op = new int[]{min.x, min.y};
+                            e.addCommand("target " + (op[0]) + " " + op[1]);
+                            if (e.isHoldingDirt()) {
+                                int[] dump;
+                                dump = field.findAdjacentDump(op[0], op[1], first.x, first.y);
+                                field.getTile(dump[0], dump[1]).setDirtHeight(field.getTile(dump[0], dump[1]).getDirtHeight() + 1);
+                                e.addCommand("drop " + dump[0] + " " + dump[1]);
+                            }
+                            e.addCommand("dig " + first.x + " " + first.y);
+                            int dump[];
+                            dump = field.findAdjacentDump(op[0], op[1], first.x, first.y);
+                            field.getTile(dump[0], dump[1]).setDirtHeight(field.getTile(dump[0], dump[1]).getDirtHeight() + 1);
+                            e.addCommand("drop " + dump[0] + " " + dump[1]);
+
+                            e.addCommand("dig " + second.x + " " + second.y);
+                            dump = field.findAdjacentDump(op[0], op[1], second.x, second.y);
+                            field.getTile(dump[0], dump[1]).setDirtHeight(field.getTile(dump[0], dump[1]).getDirtHeight() + 1);
+                            e.addCommand("drop " + dump[0] + " " + dump[1]);
+                        }
+
+//                    for (Tile t : secondCanal) {
+//                        if (t.getDirtHeight() > 0) {
+//                            op = field.optimize(e.getxLoc(), e.getyLoc(), t.x, t.y);
+//                            e.addCommand("target " + (op[0]) + " " + op[1]);
+//                            if (e.isHoldingDirt()) {
+//                                int[] dump;
+//                                dump = field.findAdjacentDump(op[0], op[1], t.x, t.y);
+//                                e.addCommand("drop " + dump[0] + " " + dump[1]);
+//                            }
+//                            e.addCommand("dig " + t.x + " " + t.y);
+//                            int dump[];
+//                            dump = field.findAdjacentDump(op[0], op[1], t.x, t.y);
+//                            e.addCommand("drop " + dump[0] + " " + dump[1]);
+//                            t.dug = true;
+//                            break;
+//                        }
+//                    }
+                        if (e.getCommands().isEmpty()) {
+                            for (Tile t : fillList) {
+                                if (t.getDirtHeight() < 2) {
+                                    op = field.optimize(e.getxLoc(), e.getyLoc(), t.x, t.y);
+                                    e.addCommand("target " + (op[0]) + " " + op[1]);
+                                    if (e.isHoldingDirt()) {
+                                        e.addCommand("drop " + t.x + " " + t.y);
+                                    }
+                                    int dirt[];
+                                    dirt = field.findAdjacentDirt(op[0], op[1]);
+                                    e.addCommand("dig " + dirt[0] + " " + dirt[1]);
+                                    e.addCommand("drop " + t.x + " " + t.y);
+                                    break;
+                                }
                             }
                         }
                     }
                 }
             }
+            //Update position
+            last1LocX = e.getxLoc();
+            last1LocY = e.getyLoc();
         }
-        //Update position
-        last1LocX = e.getxLoc();
-        last1LocY = e.getyLoc();
     }
 
     private static int twoPhase = 0;
@@ -462,7 +559,7 @@ public class Player {
         } else {
             stallCount = 0;
         }
-        
+
         last2LocX = e.getxLoc();
         last2LocY = e.getyLoc();
 
