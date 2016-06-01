@@ -1,3 +1,4 @@
+
 import java.util.ArrayList;
 
 /*
@@ -219,6 +220,7 @@ public class Field {
 
     //int[][] dontDig = new int[][]{{9, 9}, {9, 8}, {9, 7}, {9, 6}, {11, 9}, {11, 8}, {11, 7}, {11, 6}, {9, 10}, {9, 11}, {10, 11}, {11, 11}, {11, 10}, {10, 9}, {10, 8}, {10, 7}, {10, 6}};
     ArrayList<Tile> dontDig = null;//getFillList(this.getPathToWaterHolePartTwo());
+
     public int[] findAdjacentDirt(int x, int y) {
         int[] coordinates = new int[2];
         for (int i = -1; i <= 1; i++) {
@@ -392,7 +394,7 @@ public class Field {
         }
         return minDistance;
     }
-    
+
     public Tile get2ndNearestWaterHole() {
         ArrayList<Tile> waterHoles = new ArrayList<>();
         int next = 0;
@@ -403,10 +405,15 @@ public class Field {
                 }
             }
         }
-        
+
         Tile nearest = getNearestWaterHole();
 
-        Tile minDistance = waterHoles.get(0);
+        Tile minDistance;
+        if (waterHoles.get(0) != nearest) {
+            minDistance = waterHoles.get(0);
+        } else {
+            minDistance = waterHoles.get(1);
+        }
         for (int i = 1; i < waterHoles.size(); i++) {
             if (Math.sqrt(Math.pow(waterHoles.get(i).x - 10, 2) + Math.pow(waterHoles.get(i).y - 10, 2))
                     < Math.sqrt(Math.pow(minDistance.x - 10, 2) + Math.pow(minDistance.y - 10, 2)) && waterHoles.get(i) != nearest) {
@@ -490,21 +497,21 @@ public class Field {
         ArrayList<Tile> list = new ArrayList<>();
 
         Path p = Player.canalFinder.findPath(10, 10, get2ndNearestWaterHole().x, get2ndNearestWaterHole().y);
-        
-        for(int i = 1; i < p.getLength()-1; i++){
+
+        for (int i = 1; i < p.getLength() - 1; i++) {
             list.add(tiles[p.getX(i)][p.getY(i)]);
         }
-        
+
         return list;
     }
-    
-    public ArrayList<Tile> getFillList(ArrayList<Tile> canal){
+
+    public ArrayList<Tile> getFillList(ArrayList<Tile> canal) {
         ArrayList<Tile> list = new ArrayList<>();
-        int[][] neighbors = {{1,0}, {-1, 0}, {0,1}, {0,-1}};
-        for(Tile t : canal){
-            for(int[] c : neighbors){
+        int[][] neighbors = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        for (Tile t : canal) {
+            for (int[] c : neighbors) {
                 Tile n = tiles[t.x + c[0]][t.y + c[1]];
-                if(!canal.contains(n) && !n.isWaterHole() && !n.isWaterSource() && !list.contains(n)){
+                if (!canal.contains(n) && !n.isWaterHole() && !n.isWaterSource() && !list.contains(n)) {
                     list.add(n);
                 }
             }

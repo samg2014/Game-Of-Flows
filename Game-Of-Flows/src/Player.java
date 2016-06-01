@@ -118,7 +118,7 @@ public class Player {
             secondCanal = field.getPathToWaterHolePartTwo();
 
             fillList = field.getFillList(secondCanal);
-            
+
             field.dontDig = fillList;
 
             ArrayList<int[]> dontDump = new ArrayList<>();
@@ -174,6 +174,7 @@ public class Player {
     // Used to identify if this excavator has stalled
     private static int last0LocX;
     private static int last0LocY;
+    private static int zeroStallCount = 0;
 
     // The command phase this excavator is in
     static int zeroPhase = 0;
@@ -184,12 +185,22 @@ public class Player {
 
         //If this excavator has stalled, kill its commands and restart
         if (e.getxLoc() == last0LocX && e.getyLoc() == last0LocY) {
-            e.clearCommands();
-            Random r = new Random();
-            int[] op = Player.field.optimize(e.getxLoc(), e.getyLoc(), (r.nextInt(4) - 2 + e.getxLoc()), (r.nextInt(4) - 2 + e.getyLoc()));
-            e.addCommand("target " + op[0] + " " + op[1]);
-            return;
+            zeroStallCount++;
+            if (zeroStallCount >= 3) {
+                e.clearCommands();
+                Random r = new Random();
+                int[] op = Player.field.optimize(e.getxLoc(), e.getyLoc(), (r.nextInt(4) - 2 + e.getxLoc()), (r.nextInt(4) - 2 + e.getyLoc()));
+                e.addCommand("target " + op[0] + " " + op[1]);
+                return;
+            }
+        } else {
+            zeroStallCount = 0;
         }
+        
+        
+        //Update position
+        last0LocX = e.getxLoc();
+        last0LocY = e.getyLoc();
 
         //If phase is 1 and there is a neutral boat to acquire, reset phase and kill all commands0
         if (zeroPhase == 1 && field.findNearestBoat(e.getxLoc(), e.getyLoc()) != null) {
@@ -254,9 +265,6 @@ public class Player {
                 }
             }
         }
-        //Update position
-        last0LocX = e.getxLoc();
-        last0LocY = e.getyLoc();
     }
 
     //Excavator 1's command phase
@@ -454,6 +462,9 @@ public class Player {
         } else {
             stallCount = 0;
         }
+        
+        last2LocX = e.getxLoc();
+        last2LocY = e.getyLoc();
 
         //If the excavator is holding a boat and has no commands, bring it to the water source
         if (e.isHoldingBoat()) {
