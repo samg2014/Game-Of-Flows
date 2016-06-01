@@ -266,16 +266,20 @@ public class Field {
                                 continue two;
                             }
                         }
-                        possible.add( new int[]{newX, newY});
+                        possible.add(new int[]{newX, newY});
                     }
                 }
             }
         }
-        for(int[] p : possible){
-            if(Player.fillList.contains(getTile(p[0], p[1]))){
+        for (int[] p : possible) {
+            if (Player.fillList.contains(getTile(p[0], p[1]))) {
                 return p;
             }
         }
+        if (possible.size() > 0) {
+            return possible.get(0);
+        }
+
         return null;
     }
 
