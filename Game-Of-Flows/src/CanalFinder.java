@@ -139,7 +139,7 @@ public class CanalFinder {
     protected boolean isValidLocation(int startX, int startY, int x, int y) {
         boolean invalid = (x < 0) || (y < 0) || (x >= MAP.getWidthInTiles()) || (y >= MAP.getHeightInTiles());
         if ((!invalid)) {
-            invalid = false;
+            invalid = Player.field.getTile(x, y).hasBoat() && Player.field.getTile(x, y).getDirtHeight() == 1;
         }
         return !invalid;
     }

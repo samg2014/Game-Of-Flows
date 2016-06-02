@@ -266,19 +266,20 @@ public class Field {
                                 continue two;
                             }
                         }
-                        possible.add(new int[]{newX, newY});
+                        return new int[]{newX, newY};
+                        //possible.add(new int[]{newX, newY});
                     }
                 }
             }
         }
-        for (int[] p : possible) {
-            if (Player.fillList.contains(getTile(p[0], p[1]))) {
-                return p;
-            }
-        }
-        if (possible.size() > 0) {
-            return possible.get(0);
-        }
+//        for (int[] p : possible) {
+//            if (Player.fillList.contains(getTile(p[0], p[1]))) {
+//                return p;
+//            }
+//        }
+//        if (possible.size() > 0) {
+//            return possible.get(0);
+//        }
 
         return null;
     }
@@ -299,16 +300,22 @@ public class Field {
         return null;
     }
 
+    public ArrayList<Tile> oppCanal = new ArrayList<>();
+
     public ArrayList<Tile> findOpponentCanal() {
-        ArrayList<Tile> ret = new ArrayList<>();
         for (Tile[] row : tiles) {
             for (Tile t : row) {
-                if (t.hasWater() && t.getWaterColor().equals(Color.BLUE) && !t.hasBoat()) {
-                    ret.add(t);
+                if ((t.hasWater() && t.getWaterColor().equals(Color.BLUE) && !oppCanal.contains(t))) {
+                    oppCanal.add(t);
+                    dontDig.add(t);
                 }
             }
         }
-        return ret;
+//        for(int i = 0; i < oppCanal.size(); i++){
+//            if(oppCanal.get(i).hasWater())
+//                oppCanal.add(0, oppCanal.remove(i));
+//        }
+        return oppCanal;
     }
 
     public ArrayList<Tile> getTilesAroundBlueSource() {
@@ -419,7 +426,7 @@ public class Field {
         ArrayList<Tile> waterHoles = new ArrayList<>();
         for (Tile[] i : tiles) {
             for (Tile j : i) {
-                if (j.isWaterHole()) {
+                if (j.isWaterHole() && (j.x < 14 || j.y < 14)) {
                     waterHoles.add(j);
                 }
             }
@@ -541,9 +548,26 @@ public class Field {
             Player.out.println("getPathToWaterHolePartTwo()");
         }
 //        Path p = Player.canalFinder.findPath(10, 10, get2ndNearestWaterHole().x, get2ndNearestWaterHole().y);
-        Path p = Player.canalFinder.findPath(10, 10, getFarthestWaterHole().x, getFarthestWaterHole().y);
+//        Path p = Player.canalFinder.findPath(10, 10, getFarthestWaterHole().x, getFarthestWaterHole().y);
+        Path p = Player.canalFinder.findPath(10, 10, getNearestWaterHole().x, getNearestWaterHole().y);
         for (int i = 1; i < p.getLength() - 1; i++) {
             list.add(tiles[p.getX(i)][p.getY(i)]);
+        }
+        if (Player.fisTournament && Player.defensiveMoves <= 20) {
+            list.add(tiles[19][19]);
+            list.add(tiles[20][19]);
+            list.add(tiles[21][19]);
+            list.add(tiles[21][20]);
+            list.add(tiles[21][21]);
+            list.add(tiles[20][21]);
+            list.add(tiles[19][21]);
+            list.add(tiles[19][20]);
+//            try {
+//                list.add(tiles[this.findOpponentCanal().get(4).x - 1][this.findOpponentCanal().get(4).y]);
+//                list.add(tiles[this.findOpponentCanal().get(4).x][this.findOpponentCanal().get(4).y - 1]);
+//            } catch (Exception e) {
+//
+//            }
         }
 
         return list;
@@ -552,7 +576,8 @@ public class Field {
     public ArrayList<Tile> getFillList(ArrayList<Tile> canal) {
         ArrayList<Tile> list = new ArrayList<>();
         int[][] neighbors = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        for (Tile t : canal) {
+        for (int i = 0; i < canal.size() - 8; i++) {
+            Tile t = canal.get(i);
             for (int[] c : neighbors) {
                 try {
                     Tile n = tiles[t.x + c[0]][t.y + c[1]];
