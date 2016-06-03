@@ -61,12 +61,13 @@ public class CanalFinder {
             // be the most likely to be the next step based on the heuristic
             Node current = (Node) OPEN.get(0);
             // Finish the loop if the target is hit, a path has been found
-            if (current == NODES[targetX][targetY]) break;
+            if (current == NODES[targetX][targetY]) {
+                break;
+            }
             //After this iteration is done the current point will be closed
             OPEN.remove(current);
             CLOSED.add(current);
 
-            
             int[][] neighbors = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
             // Search through all the neighbours of the current point evaluating
             // them as next steps
@@ -74,13 +75,15 @@ public class CanalFinder {
             for (int[] change : neighbors) {
                 int x = change[0];
                 int y = change[1];
-                                
+
                 // Don't use a tile if it is the current tile
-                if ((x == 0) && (y == 0)) continue;
+                if ((x == 0) && (y == 0)) {
+                    continue;
+                }
                 // Determine the location of the neighbour and evaluate it
                 int xp = x + current.x;
                 int yp = y + current.y;
-                            
+
                 if (isValidLocation(current.x, current.y, xp, yp)) {
                     // The cost to get to this point is cost the current plus the movement
                     // cost to reach this point. Note that the heursitic value is only used
@@ -89,8 +92,12 @@ public class CanalFinder {
                     Node neighbour = NODES[xp][yp];
                     MAP.pathFinderVisited(xp, yp);
                     if (nextStepCost < neighbour.cost) {
-                        if (OPEN.contains(neighbour)) OPEN.remove(neighbour);
-                        if (CLOSED.contains(neighbour)) CLOSED.remove(neighbour);
+                        if (OPEN.contains(neighbour)) {
+                            OPEN.remove(neighbour);
+                        }
+                        if (CLOSED.contains(neighbour)) {
+                            CLOSED.remove(neighbour);
+                        }
                     }
                     // If the point hasn't already been processed and discarded then
                     // reset it's cost to the current cost and add it as a next possible
@@ -105,7 +112,9 @@ public class CanalFinder {
             }
         }
         // There was no path. Return null
-        if (NODES[targetX][targetY].parent == null) return null;
+        if (NODES[targetX][targetY].parent == null) {
+            return null;
+        }
         // Path found. Use the parent
         // references of the points to find out way from the target location back
         // to the start recording the point on the way.
@@ -139,7 +148,6 @@ public class CanalFinder {
     protected boolean isValidLocation(int startX, int startY, int x, int y) {
         boolean invalid = (x < 0) || (y < 0) || (x >= MAP.getWidthInTiles()) || (y >= MAP.getHeightInTiles());
         if ((!invalid)) {
-            invalid = Player.field.getTile(x, y).hasBoat() && Player.field.getTile(x, y).getDirtHeight() == 1;
         }
         return !invalid;
     }
@@ -152,7 +160,6 @@ public class CanalFinder {
     private class Node implements Comparable {
 
         // X coordinate
-
         private int x;
         // Y coordinate
         private int y;

@@ -152,8 +152,12 @@ public class Excavator {
 
         if (command.equals("idle") && idle_cleared) {
             Random r = new Random();
-            int[] op = Player.field.optimize(getxLoc(), getyLoc(), (r.nextInt(4) - 2 + getxLoc()), (r.nextInt(4) - 2 + getyLoc()));
-            addCommand("target " + op[0] + " " + op[1]);
+            try {
+                int[] op = Player.field.optimize(getxLoc(), getyLoc(), (r.nextInt(4) - 2 + getxLoc()), (r.nextInt(4) - 2 + getyLoc()));
+                addCommand("target " + op[0] + " " + op[1]);
+            } catch (NullPointerException e) {
+
+            }
         }
         System.out.println(command);
 

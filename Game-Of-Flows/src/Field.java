@@ -1,5 +1,6 @@
 
 import java.util.ArrayList;
+import java.util.Random;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -303,6 +304,7 @@ public class Field {
     public ArrayList<Tile> oppCanal = new ArrayList<>();
 
     public ArrayList<Tile> findOpponentCanal() {
+        oppCanal.clear();
         for (Tile[] row : tiles) {
             for (Tile t : row) {
                 if ((t.hasWater() && t.getWaterColor().equals(Color.BLUE) && !oppCanal.contains(t))) {
@@ -333,28 +335,37 @@ public class Field {
         return ret;
     }
 
+    
+    //I revamped this to optimize based on path length, not plain distance.
     public int[] optimize(int x, int y, int targetX, int targetY) {
         double distance = Double.MAX_VALUE;
-        int[] coordinates = new int[2];
-        GameMap map = this.convertToMap();
+        int[] coordinates = null;
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
                 if (i != 0 || j != 0) {
                     int newX = targetX + i;
                     int newY = targetY + j;
                     if (newX == x && newY == y) {
-                        coordinates[0] = newX;
-                        coordinates[1] = newY;
+                        coordinates = new int[]{newX, newY};
                         //tiles[newX][newY].assigned = true;
                         return coordinates;
                     }
-                    if (newX > -1 && newY > -1 && newX < 31 && newY < 31 && map.terrain[newX][newY] != GameMap.BLOCKED) {
-                        if (Math.sqrt(Math.pow(Math.abs(newX - x), 2) + Math.pow(Math.abs(newY - y), 2)) < distance) {
-                            distance = Math.sqrt(Math.pow(Math.abs(newX - x), 2) + Math.pow(Math.abs(newY - y), 2));
-                            coordinates[0] = newX;
-                            coordinates[1] = newY;
+                    if (newX > -1 && newY > -1 && newX < 31 && newY < 31) {
+                        Path p = Player.pathFinder.findPath(x, y, newX, newY);
+                        if (p != null) {
+                            if (p.getLength() < distance) {
+                                distance = p.getLength();
+                                coordinates = new int[]{newX, newY};
+                            }
                         }
                     }
+//                    if (newX > -1 && newY > -1 && newX < 31 && newY < 31 && map.terrain[newX][newY] != GameMap.BLOCKED) {
+//                        if (Math.sqrt(Math.pow(Math.abs(newX - x), 2) + Math.pow(Math.abs(newY - y), 2)) < distance) {
+//                            distance = Math.sqrt(Math.pow(Math.abs(newX - x), 2) + Math.pow(Math.abs(newY - y), 2));
+//                            coordinates[0] = newX;
+//                            coordinates[1] = newY;
+//                        }
+//                    }
                 }
             }
 
@@ -548,12 +559,18 @@ public class Field {
             Player.out.println("getPathToWaterHolePartTwo()");
         }
 //        Path p = Player.canalFinder.findPath(10, 10, get2ndNearestWaterHole().x, get2ndNearestWaterHole().y);
-//        Path p = Player.canalFinder.findPath(10, 10, getFarthestWaterHole().x, getFarthestWaterHole().y);
-        Path p = Player.canalFinder.findPath(10, 10, getNearestWaterHole().x, getNearestWaterHole().y);
+        Path p = Player.canalFinder.findPath(10, 10, getFarthestWaterHole().x, getFarthestWaterHole().y);
+//        Path p = Player.canalFinder.findPath(10, 10, getNearestWaterHole().x, getNearestWaterHole().y);
         for (int i = 1; i < p.getLength() - 1; i++) {
             list.add(tiles[p.getX(i)][p.getY(i)]);
         }
+        int temp = list.size();
         if (Player.fisTournament && Player.defensiveMoves <= 20) {
+            //This adds the tiles around the opponents source. You may want to play with what tiles are here.
+            list.add(tiles[20][18]);
+            list.add(tiles[22][20]);
+            list.add(tiles[20][22]);
+            list.add(tiles[18][20]);
             list.add(tiles[19][19]);
             list.add(tiles[20][19]);
             list.add(tiles[21][19]);
@@ -562,21 +579,37 @@ public class Field {
             list.add(tiles[20][21]);
             list.add(tiles[19][21]);
             list.add(tiles[19][20]);
-//            try {
-//                list.add(tiles[this.findOpponentCanal().get(4).x - 1][this.findOpponentCanal().get(4).y]);
-//                list.add(tiles[this.findOpponentCanal().get(4).x][this.findOpponentCanal().get(4).y - 1]);
-//            } catch (Exception e) {
-//
-//            }
+            
+//            list.add(tiles[18][18]);
+//            list.add(tiles[19][18]);
+//            list.add(tiles[20][18]);
+//            list.add(tiles[21][18]);
+//            list.add(tiles[22][18]);
+//            list.add(tiles[22][19]);
+//            list.add(tiles[22][20]);
+//            list.add(tiles[22][21]);
+//            list.add(tiles[22][22]);
+//            list.add(tiles[21][22]);
+//            list.add(tiles[20][22]);
+//            list.add(tiles[19][22]);
+//            list.add(tiles[18][22]);
+//            list.add(tiles[18][21]);
+//            list.add(tiles[18][20]);
+//            list.add(tiles[18][19]);
+            
         }
-
+        Player.zeroSkipNum = list.size() - temp;
         return list;
     }
 
     public ArrayList<Tile> getFillList(ArrayList<Tile> canal) {
         ArrayList<Tile> list = new ArrayList<>();
         int[][] neighbors = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        for (int i = 0; i < canal.size() - 8; i++) {
+        int j = 0;
+        if (Player.fisTournament) {
+            j = 8;
+        }
+        for (int i = 0; i < canal.size() - j; i++) {
             Tile t = canal.get(i);
             for (int[] c : neighbors) {
                 try {
