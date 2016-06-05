@@ -335,7 +335,6 @@ public class Field {
         return ret;
     }
 
-    
     //I revamped this to optimize based on path length, not plain distance.
     public int[] optimize(int x, int y, int targetX, int targetY) {
         double distance = Double.MAX_VALUE;
@@ -371,8 +370,29 @@ public class Field {
 
         }
         //tiles[coordinates[0]][coordinates[1]].assigned = true;
-        return coordinates;
+        if (coordinates != null) {
+            return coordinates;
+        } else {
+            for (int i = -1; i <= 1; i++) {
+                for (int j = -1; j <= 1; j++) {
+                    int newX = targetX + i;
+                    int newY = targetY + j;
+                    GameMap map = convertToMap();
+                    if (newX > -1 && newY > -1 && newX < 31 && newY < 31 && map.terrain[newX][newY] != GameMap.BLOCKED) {
+                        if (Math.sqrt(Math.pow(Math.abs(newX - x), 2) + Math.pow(Math.abs(newY - y), 2)) < distance) {
+                            distance = Math.sqrt(Math.pow(Math.abs(newX - x), 2) + Math.pow(Math.abs(newY - y), 2));
+                            coordinates[0] = newX;
+                            coordinates[1] = newY;
+                        }
+                    }
+                }
+            }
+        }
     }
+
+    
+
+    
 
     public Tile getNextCanalTarget(int x, int y) {
         Tile ret = null;
@@ -579,7 +599,7 @@ public class Field {
             list.add(tiles[20][21]);
             list.add(tiles[19][21]);
             list.add(tiles[19][20]);
-            
+
 //            list.add(tiles[18][18]);
 //            list.add(tiles[19][18]);
 //            list.add(tiles[20][18]);
@@ -596,7 +616,6 @@ public class Field {
 //            list.add(tiles[18][21]);
 //            list.add(tiles[18][20]);
 //            list.add(tiles[18][19]);
-            
         }
         Player.zeroSkipNum = list.size() - temp;
         return list;
