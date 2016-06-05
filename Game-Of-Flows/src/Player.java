@@ -352,7 +352,7 @@ public class Player {
                 Tile t = canal.get(i);
                 if (t.getDirtHeight() > 0) {
                     op = field.optimize(e.getxLoc(), e.getyLoc(), t.x, t.y);
-                    e.addCommand("target " + (op[0]) + " " + op[1]);
+                    e.addCommand("target " + op[0] + " " + op[1]);
                     if (e.isHoldingDirt()) {
                         int[] dump;
                         dump = field.findAdjacentDump(op[0], op[1], t.x, t.y);

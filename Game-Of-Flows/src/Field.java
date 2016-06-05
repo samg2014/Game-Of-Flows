@@ -388,6 +388,7 @@ public class Field {
                 }
             }
         }
+        return coordinates;
     }
 
     
